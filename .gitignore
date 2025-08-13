@@ -1,0 +1,78 @@
+# Django Specific:
+
+# Python compiled files
+*.pyc
+
+# Python cache directories
+__pycache__/
+
+# Python optimized files
+*.pyo
+
+# Log files
+*.log
+
+# SQLite database file
+db.sqlite3
+
+# User uploaded files (photos/videos)
+media/
+
+# Collected static files
+staticfiles/
+
+# Python General:
+
+# Virtual Environment
+venv/
+
+# Alternative virtual environment
+env/
+
+# Environment variables file
+.env
+
+# Package info
+*.egg-info/
+
+# Distribution files
+dist/
+
+# Build files
+build/
+
+# IDE/Editor:
+
+# VS Code settings
+.vscode/
+
+# PyCharm/IntelliJ settings
+.idea/
+
+# Vim swap files
+*.swp
+
+# Backup files
+*~
+
+# OS specific:
+
+# macOS system files
+.DS_Store
+
+# Windows thumbnail cache
+Thumbs.db
+
+# Windows folder settings
+desktop.ini
+
+# Project specific:
+
+# In case of creating a separate uploads directory
+uploads/
+
+# Temporary files
+temp/
+
+# Database dumps
+*.sql
