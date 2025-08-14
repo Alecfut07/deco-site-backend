@@ -42,3 +42,22 @@ def portfolio_detail(request, item_id):
             return JsonResponse(data, safe=False)
         except PortfolioItem.DoesNotExist:
             return JsonResponse({'error': 'Portfolio item not found'}, status=404)
+
+# GET portfolio items by category
+def portfolio_by_category(request, category):
+    """API endpoint to get portfolio items by category"""
+    if request.method == 'GET':
+        portfolio_items = PortfolioItem.objects.filter(category__iexact=category).order_by('-upload_date')
+
+        data = []
+        for item in portfolio_items:
+            data.append({
+                'id': item.id,
+                'title': item.title,
+                'description': item.description,
+                'category': item.category,
+                'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
+                'upload_date': item.upload_date.isoformat(),
+            })
+        
+        return JsonResponse({'portfolio_items': data, 'category': category}, safe=False)
