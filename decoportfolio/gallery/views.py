@@ -17,7 +17,8 @@ def portfolio_list(request):
                 'id': item.id,
                 'title': item.title,
                 'description': item.description,
-                'category': item.category,
+                'category': item.category.name,
+                'category_id': item.category.id,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             })
@@ -34,7 +35,8 @@ def portfolio_detail(request, item_id):
                 'id': item.id,
                 'title': item.title,
                 'description': item.description,
-                'category': item.category,
+                'category': item.category.name,
+                'category_id': item.category.id,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             }
@@ -55,7 +57,8 @@ def portfolio_by_category(request, category):
                 'id': item.id,
                 'title': item.title,
                 'description': item.description,
-                'category': item.category,
+                'category': item.category.name,
+                'category_id': item.category.id,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             })
