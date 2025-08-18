@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import PortfolioItem
+from .models import PortfolioItem, Category
 from django.core.serializers import serialize
 import json
 
@@ -49,7 +49,11 @@ def portfolio_detail(request, item_id):
 def portfolio_by_category(request, category):
     """API endpoint to get portfolio items by category"""
     if request.method == 'GET':
-        portfolio_items = PortfolioItem.objects.filter(category__iexact=category).order_by('-upload_date')
+        try:
+            category_obj = Category.objects.get(name__iexact=category)
+            portfolio_items = PortfolioItem.objects.filter(category=category_obj).order_by('-upload_date')
+        except Category.DoesNotExist:
+            return JsonResponse({'error': 'Category not found'}, status=404)
 
         data = []
         for item in portfolio_items:
