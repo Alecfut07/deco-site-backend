@@ -14,3 +14,18 @@ class PortfolioItem(models.Model):
 
     def __str__(self):
         return self.title
+    
+class Service(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    price_range = models.CharField(max_length=100, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='services')
+    is_active = models.BooleanField(default=True, help_text="Hide inactive services")
+    display_order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['display_order', 'name']
+        verbose_name_plural = 'Services'
+
+    def __str__(self):
+        return self.name
