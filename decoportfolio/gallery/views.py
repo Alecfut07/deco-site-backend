@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import PortfolioItem, Category
+from .models import PortfolioItem, Category, Service
 from django.core.serializers import serialize
 import json
 
@@ -19,6 +19,8 @@ def portfolio_list(request):
                 'description': item.description,
                 'category': item.category.name,
                 'category_id': item.category.id,
+                'service': item.service.name if item.service else None,
+                'service_id': item.service.id if item.service else None,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             })
@@ -37,6 +39,8 @@ def portfolio_detail(request, item_id):
                 'description': item.description,
                 'category': item.category.name,
                 'category_id': item.category.id,
+                'service': item.service.name if item.service else None,
+                'service_id': item.service.id if item.service else None,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             }
@@ -63,6 +67,8 @@ def portfolio_by_category(request, category):
                 'description': item.description,
                 'category': item.category.name,
                 'category_id': item.category.id,
+                'service': item.service.name if item.service else None,
+                'service_id': item.service.id if item.service else None,
                 'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
                 'upload_date': item.upload_date.isoformat(),
             })
