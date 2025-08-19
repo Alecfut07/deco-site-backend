@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import PortfolioItem, Category, Service
 
 @admin.register(Category)
@@ -47,8 +48,10 @@ class PortfolioItemAdmin(admin.ModelAdmin):
 
     def image_preview(self, obj):
         if obj.image:
-            return f'<img src="{obj.image.url}" style="max-height: 50px; max-width: 50px;" />'
-        return 'No image'
+            return format_html(
+                '<img src="{}" style="max-height: 50px; max-width: 50px; object-fit: cover;" />',
+                obj.image.url
+            )
+        return "No image"
     
     image_preview.short_description = 'Image Preview'
-    image_preview.allow_tags = True
