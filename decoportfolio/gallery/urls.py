@@ -11,5 +11,5 @@ urlpatterns = [
     # New search and filter endpoints
     path('api/gallery/search/', views.portfolio_search, name='portfolio_search'),
     path('api/gallery/filter/', views.portfolio_filter, name='portfolio_filter'),
-    path('api/gallery/combined/', views.portfolio_combined_search, name='portfolio_combined_search'),
+    path('api/gallery/combined/', views.portfolio_combined_filter, name='portfolio_combined_filter'),
 ]
