@@ -48,13 +48,23 @@ def paginate_queryset(queryset, page, page_size, request):
 
 # GET all portfolio items
 def portfolio_list(request):
-    """API endpoint to get all portfolio items"""
+    """API endpoint to get all portfolio items with pagination"""
     if request.method == 'GET':
+        # Get pagination parameters
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 20)
+
+        # Get all items ordered by upload date
+        portfolio_items, PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
+
+        # Apply pagination
+        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+        
         portfolio_items = PortfolioItem.objects.all().order_by('-upload_date')
 
-        # Convert to JSON-serializable format
+        # Serialize items
         data = []
-        for item in portfolio_items:
+        for item in items:
             data.append({
                 'id': item.id,
                 'title': item.title,
@@ -67,7 +77,10 @@ def portfolio_list(request):
                 'upload_date': item.upload_date.isoformat(),
             })
         
-        return JsonResponse({'portfolio_items': data}, safe=False)
+        return JsonResponse({
+            'portfolio_items': data,
+            'pagination': pagination_data
+        }, safe=False)
 
 # GET a single portfolio item
 def portfolio_detail(request, item_id):
