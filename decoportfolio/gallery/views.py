@@ -55,7 +55,7 @@ def portfolio_list(request):
         page_size = request.GET.get('page_size', 20)
 
         # Get all items ordered by upload date
-        portfolio_items, PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
+        portfolio_items = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
 
         # Apply pagination
         items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
