@@ -218,14 +218,16 @@ def portfolio_filter(request):
         }, safe=False)
     
 def portfolio_combined_filter(request):
-    """API endpoint for combined search and filtering"""
+    """API endpoint for combined search and filtering with pagination"""
     if request.method == 'GET':
         query = request.GET.get('q', '').strip()
         category = request.GET.get('category', '').strip()
         service = request.GET.get('service', '').strip()
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 20)
 
         # Start with all items
-        portfolio_items = PortfolioItem.objects.all()
+        portfolio_items = PortfolioItem.objects.select_related('category', 'service').all()
 
         # Apply text search if query provided
         if query:
@@ -244,8 +246,12 @@ def portfolio_combined_filter(request):
         # Order by upload date
         portfolio_items = portfolio_items.order_by('-upload_date')
 
+        # Apply pagination
+        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+
+        # Serialize items
         data = []
-        for item in portfolio_items:
+        for item in items:
             data.append({
                 'id': item.id,
                 'title': item.title,
@@ -264,6 +270,6 @@ def portfolio_combined_filter(request):
                 'category': category if category else None,
                 'service': service if service else None,
             },
-            'results_count': len(data),
-            'portfolio_items': data
+            'portfolio_items': data,
+            'pagination': pagination_data
         }, safe=False)
