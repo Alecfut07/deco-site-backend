@@ -129,9 +129,11 @@ def portfolio_by_category(request, category):
         return JsonResponse({'portfolio_items': data, 'category': category}, safe=False)
 
 def portfolio_search(request):
-    """API endpoint to search portfolio items by text"""
+    """API endpoint to search portfolio items by text with pagination"""
     if request.method == 'GET':
         query = request.GET.get('q', '').strip()
+        page = request.GET.get('page', 1)
+        page_size = request.GET.get('page_size', 20)
 
         if not query:
             return JsonResponse({'error': 'Search query is required'}, status=400)
@@ -142,6 +144,10 @@ def portfolio_search(request):
             models.Q(description__icontains=query)
         ).order_by('-upload_date')
 
+        # Apply pagination
+        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+
+        # Serialize items
         data = []
         for item in portfolio_items:
             data.append({
@@ -158,8 +164,8 @@ def portfolio_search(request):
         
         return JsonResponse({
             'search_query': query,
-            'results_count': len(data),
-            'portfolio_items': data
+            'portfolio_items': data,
+            'pagination': pagination_data
         }, safe=False)
     
 def portfolio_filter(request):
