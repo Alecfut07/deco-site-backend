@@ -149,7 +149,7 @@ def portfolio_search(request):
 
         # Serialize items
         data = []
-        for item in portfolio_items:
+        for item in items:
             data.append({
                 'id': item.id,
                 'title': item.title,
