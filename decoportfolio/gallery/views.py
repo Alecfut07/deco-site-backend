@@ -59,8 +59,6 @@ def portfolio_list(request):
 
         # Apply pagination
         items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
-        
-        portfolio_items = PortfolioItem.objects.all().order_by('-upload_date')
 
         # Serialize items
         data = []
