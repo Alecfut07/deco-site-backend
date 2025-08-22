@@ -5,10 +5,51 @@ from .models import PortfolioItem, Category, Service
 from django.core.serializers import serialize
 import json
 
+def paginate_queryset(queryset, page, page_size, request):
+    """Helper function to paginate queryset and return paginated data"""
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+    # Validate and set page and page size limits
+    min_page_size = 5
+    max_page_size = 200
+    default_page_size = 20
+
+    try:
+        page_size = int(page_size) if page_size else default_page_size
+        page_size = max(min_page_size, min(page_size, max_page_size))
+    except (ValueError, TypeError):
+        page_size = default_page_size
+
+    # Create paginator
+    paginator = Paginator(queryset, page_size)
+
+    try:
+        page_number = int(page) if page else 1
+        page_obj = paginator.page(page_number)
+    except (ValueError, TypeError, EmptyPage):
+        page_obj = paginator.page(1)
+
+    # Get items for current page
+    items = page_obj.object_list
+    
+    # Build pagination metadata
+    pagination_data = {
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'total_items': paginator.count,
+        'page_size': page_size,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'next_page': page_obj.next_page_number() if page_obj.has_next() else None,
+        'previous_page': page_obj.previous_page_number() if page_obj.has_previous() else None,
+    }
+
+    return items, pagination_data
+
 # GET all portfolio items
 def portfolio_list(request):
     """API endpoint to get all portfolio items"""
-    if request.method == 'GET': 
+    if request.method == 'GET':
         portfolio_items = PortfolioItem.objects.all().order_by('-upload_date')
 
         # Convert to JSON-serializable format
