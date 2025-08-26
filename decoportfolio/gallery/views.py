@@ -120,45 +120,33 @@ def portfolio_by_category(request, category):
         
         return JsonResponse({'portfolio_items': data, 'category': category}, safe=False)
 
+@api_view(['GET'])
 def portfolio_search(request):
     """API endpoint to search portfolio items by text with pagination"""
-    if request.method == 'GET':
-        query = request.GET.get('q', '').strip()
-        page = request.GET.get('page', 1)
-        page_size = request.GET.get('page_size', 20)
+    query = request.GET.get('q', '').strip()
+    page = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 20)
 
-        if not query:
-            return JsonResponse({'error': 'Search query is required'}, status=400)
-        
-        # Search in title and description
-        portfolio_items = PortfolioItem.objects.filter(
-            models.Q(title__icontains=query) |
-            models.Q(description__icontains=query)
-        ).order_by('-upload_date')
+    if not query:
+        return Response({'error': 'Search query is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Apply pagination
-        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+    # Search in title and description
+    portfolio_items = PortfolioItem.objects.select_related('category', 'service').filter(
+        models.Q(title__icontains=query) |
+        models.Q(description__icontains=query)
+    ).order_by('-upload_date')
 
-        # Serialize items
-        data = []
-        for item in items:
-            data.append({
-                'id': item.id,
-                'title': item.title,
-                'description': item.description,
-                'category': item.category.name,
-                'category_id': item.category.id,
-                'service': item.service.name if item.service else None,
-                'service_id': item.service.id if item.service else None,
-                'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
-                'upload_date': item.upload_date.isoformat(),
-            })
-        
-        return JsonResponse({
-            'search_query': query,
-            'portfolio_items': data,
-            'pagination': pagination_data
-        }, safe=False)
+    # Apply pagination
+    items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+
+    # Use serializer
+    serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+    
+    return Response({
+        'search_query': query,
+        'portfolio_items': serializer.data,
+        'pagination': pagination_data
+    })  
     
 def portfolio_filter(request):
     """API endpoint to filter portfolio items by multiple criteria with pagination"""
