@@ -1,9 +1,13 @@
-from django.db import models
 from django.shortcuts import render
 from django.http import JsonResponse
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import models
 from .models import PortfolioItem, Category, Service
-from django.core.serializers import serialize
-import json
+from .serializers import PortfolioItemSerializer, CategorySerializer, ServiceSerializer
 
 def paginate_queryset(queryset, page, page_size, request):
     """Helper function to paginate queryset and return paginated data"""
@@ -47,38 +51,26 @@ def paginate_queryset(queryset, page, page_size, request):
     return items, pagination_data
 
 # GET all portfolio items
+@api_view(['GET'])
 def portfolio_list(request):
     """API endpoint to get all portfolio items with pagination"""
-    if request.method == 'GET':
-        # Get pagination parameters
-        page = request.GET.get('page', 1)
-        page_size = request.GET.get('page_size', 20)
+    # Get pagination parameters
+    page = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 20)
 
-        # Get all items ordered by upload date
-        portfolio_items = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
+    # Get all items ordered by upload date
+    portfolio_items = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
 
-        # Apply pagination
-        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+    # Apply pagination
+    items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
 
-        # Serialize items
-        data = []
-        for item in items:
-            data.append({
-                'id': item.id,
-                'title': item.title,
-                'description': item.description,
-                'category': item.category.name,
-                'category_id': item.category.id,
-                'service': item.service.name if item.service else None,
-                'service_id': item.service.id if item.service else None,
-                'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
-                'upload_date': item.upload_date.isoformat(),
-            })
-        
-        return JsonResponse({
-            'portfolio_items': data,
-            'pagination': pagination_data
-        }, safe=False)
+    # Use serializer for automatic data conversion
+    serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+
+    return Response({
+        'portfolio_items': serializer.data,
+        'pagination': pagination_data
+    })       
 
 # GET a single portfolio item
 def portfolio_detail(request, item_id):
