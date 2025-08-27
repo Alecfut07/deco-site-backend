@@ -72,8 +72,8 @@ def portfolio_list(request):
         'pagination': pagination_data
     })       
 
-@api_view(['GET'])
 # GET a single portfolio item
+@api_view(['GET'])
 def portfolio_detail(request, item_id):
     """API endpoint to get a specific portfolio item"""
     try:
@@ -84,30 +84,28 @@ def portfolio_detail(request, item_id):
         return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
 
 # GET portfolio items by category
+@api_view(['GET'])
 def portfolio_by_category(request, category):
     """API endpoint to get portfolio items by category"""
-    if request.method == 'GET':
-        try:
-            category_obj = Category.objects.get(name__iexact=category)
-            portfolio_items = PortfolioItem.objects.filter(category=category_obj).order_by('-upload_date')
-        except Category.DoesNotExist:
-            return JsonResponse({'error': 'Category not found'}, status=404)
+    try:
+        category_obj = Category.objects.get(name__iexact=category)
+        portfolio_items = PortfolioItem.objects.filter(category=category_obj).order_by('-upload_date')
+        page = 1
+        page_size = 20
 
-        data = []
-        for item in portfolio_items:
-            data.append({
-                'id': item.id,
-                'title': item.title,
-                'description': item.description,
-                'category': item.category.name,
-                'category_id': item.category.id,
-                'service': item.service.name if item.service else None,
-                'service_id': item.service.id if item.service else None,
-                'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
-                'upload_date': item.upload_date.isoformat(),
-            })
-        
-        return JsonResponse({'portfolio_items': data, 'category': category}, safe=False)
+        # Apply pagination
+        items, pagination_data = paginate_queryset(portfolio_items, page, page_size, request)
+
+        # Use serializer
+        serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+
+        return Response({
+            'category': category,
+            'portfolio_items': serializer.data,
+            'pagination': pagination_data
+        })
+    except Category.DoesNotExist:
+        return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 def portfolio_search(request):
