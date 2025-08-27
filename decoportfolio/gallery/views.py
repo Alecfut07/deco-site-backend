@@ -72,6 +72,7 @@ def portfolio_list(request):
         'pagination': pagination_data
     })       
 
+@api_view(['GET'])
 # GET a single portfolio item
 def portfolio_detail(request, item_id):
     """API endpoint to get a specific portfolio item"""
