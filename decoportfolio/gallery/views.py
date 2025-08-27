@@ -75,24 +75,12 @@ def portfolio_list(request):
 # GET a single portfolio item
 def portfolio_detail(request, item_id):
     """API endpoint to get a specific portfolio item"""
-    if request.method == 'GET':
-        try:
-            item = PortfolioItem.objects.get(id=item_id)
-            data = {
-                'id': item.id,
-                'title': item.title,
-                'description': item.description,
-                'category': item.category.name,
-                'category_id': item.category.id,
-                'service': item.service.name if item.service else None,
-                'service_id': item.service.id if item.service else None,
-                'image_url': request.build_absolute_uri(item.image.url) if item.image else None,
-                'upload_date': item.upload_date.isoformat(),
-            }
-
-            return JsonResponse(data, safe=False)
-        except PortfolioItem.DoesNotExist:
-            return JsonResponse({'error': 'Portfolio item not found'}, status=404)
+    try:
+        item = PortfolioItem.objects.select_related('category', 'service').get(id=item_id)
+        serializer = PortfolioItemSerializer(item, context={'request': request})
+        return Response(serializer.data)
+    except PortfolioItem.DoesNotExist:
+        return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
 
 # GET portfolio items by category
 def portfolio_by_category(request, category):
