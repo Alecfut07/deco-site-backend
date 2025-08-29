@@ -163,7 +163,7 @@ def portfolio_filter(request):
     # Use serializer
     serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
     
-    return JsonResponse({
+    return Response({
         'filters_applied': {
             'category': category if category else None,
             'service': service if service else None,
