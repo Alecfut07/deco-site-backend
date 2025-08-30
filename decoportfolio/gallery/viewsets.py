@@ -59,6 +59,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
     default_page = 1
     default_page_size = 20
 
+    @action(detail=False, methods=['get'])
     def portfolio_list(self, request):
         """List all portfolio items with pagination"""
         page = request.GET.get('page', self.default_page)
@@ -71,6 +72,16 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+    @action(detail=False, methods=['get'])
+    def portfolio_detail(self, request, pk=None):
+        """Retrieve a portfolio item by ID"""
+        try:
+            item = self.queryset.get(id=pk)
+            serializer = self.get_serializer(item)
+            return Response(serializer.data)
+        except PortfolioItem.DoesNotExist:
+            return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
     
     @action(detail=False, methods=['get'])
     def portfolio_search(self, request):
@@ -165,6 +176,31 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+    @action(detail=False, methods=['get'])
+    def portfolio_by_category(self, request):
+        """Get portfolio items by category"""
+        category = request.GET.get('category', '').strip()
+        page = request.GET.get('page', self.default_page)
+        page_size = request.GET.get('page_size', self.default_page_size)
+
+        if not category:
+            return Response({'error': 'Category parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            category_obj = Category.objects.get(name__iexact=category)
+            category_results = self.queryset.filter(category=category_obj)
+
+            items, pagination_data = paginate_queryset(category_results, page, page_size, request)
+            serializer = self.get_serializer(items, many=True)
+
+            return Response({
+                'category': category,
+                'portfolio_items': serializer.data,
+                'pagination': pagination_data
+            })
+        except Category.DoesNotExist:
+            return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
     
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for categories"""
