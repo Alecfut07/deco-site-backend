@@ -71,3 +71,28 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+    @action(detail=False, methods=['get'])
+    def portfolio_search(self, request):
+        """"Search portfolio items by text"""
+        query = request.GET.get('q', '').strip()
+        page = request.GET.get('page', self.default_page)
+        page_size = request.GET.get('page_size', self.default_page_size)
+
+        if not query:
+            return Response({'error': 'Seach query is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Search in title and description
+        search_results = self.queryset.filter(
+            models.Q(title__icontains=query) |
+            models.Q(description__icontains=query)
+        )
+
+        items, pagination_data = paginate_queryset(search_results, page, page_size, request)
+        serializer = self.get_serializer(items, many=True)
+
+        return Response({
+            'search_query': query,
+            'portfolio_items': serializer.data,
+            'pagination': pagination_data
+        })
