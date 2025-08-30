@@ -126,3 +126,42 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+    @action(detail=False, methods=['get'])
+    def portfolio_combined(self, request):
+        """Combined search and filtering"""
+        query = request.GET.get('q', '').strip()
+        category = request.GET.get('category', '').strip()
+        service = request.GET.get('service', '').strip()
+        page = request.GET.get('page', self.default_page)
+        page_size = request.GET.get('page_size', self.default_page_size)
+
+        # Start with all items
+        combined_results = self.queryset.all()
+
+        # Apply text search if query provided
+        if query:
+            combined_results = combined_results.filter(
+                models.Q(title__icontains=query) |
+                models.Q(description__icontains=query)
+            )
+        
+        # Apply filters
+        if category:
+            combined_results = combined_results.filter(category__name__iexact=category)
+
+        if service:
+            combined_results = combined_results.filter(service__name__iexact=service)
+
+        items, pagination_data = paginate_queryset(combined_results, page, page_size, request)
+        serializer = self.get_serializer(items, many=True)
+
+        return Response({
+            'search_query': query if query else None,
+            'filters_applied': {
+                'category': category if category else None,
+                'service': service if service else None
+            },
+            'portfolio_items': serializer.data,
+            'pagination': pagination_data
+        })
