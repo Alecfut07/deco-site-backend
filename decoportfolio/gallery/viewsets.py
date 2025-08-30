@@ -96,3 +96,33 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+    @action(detail=False, methods=['get'])
+    def portfolio_filter(self, request):
+        """Filter portfolio items by category and service"""
+        category = request.GET.get('category', '').strip()
+        service = request.GET.get('service', '').strip()
+        page = request.GET.get('page', self.default_page)
+        page_size = request.GET.get('page_size', self.default_page_size)
+
+        # Start with all items
+        filtered_results = self.queryset.all()
+
+        # Apply filters
+        if category:
+            filtered_results = filtered_results.filter(category__name__iexact=category)
+        
+        if service:
+            filtered_results = filtered_results.filter(service__name__iexact=service)
+
+        items, pagination_data = paginate_queryset(filtered_results, page, page_size, request)
+        serializer = self.get_serializer(items, many=True)
+
+        return Response({
+            'filters_applied': {
+                'category': category if category else None,
+                'service': service if service else None
+            },
+            'portfolio_items': serializer.data,
+            'pagination': pagination_data
+        })
