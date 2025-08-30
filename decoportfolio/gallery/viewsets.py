@@ -165,3 +165,13 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'portfolio_items': serializer.data,
             'pagination': pagination_data
         })
+    
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for categories"""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for services"""
+    queryset = Service.objects.select_related('category')
+    serializer_class = ServiceSerializer
