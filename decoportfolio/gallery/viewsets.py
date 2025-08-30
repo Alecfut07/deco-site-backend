@@ -41,3 +41,33 @@ def paginate_queryset(queryset, page, page_size, request):
     }
 
     return items, pagination_data
+
+class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for portfolio items with search, filter, and pagination capabilities
+
+    Provides:
+    - List all portfolio items
+    - Retrieve individual portfolio items
+    - Search by text
+    - Filter by category and service
+    - Combined search and filtering
+    - Pagination support
+    """
+    queryset = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
+    serializer_class = PortfolioItemSerializer
+    default_page = 1
+    default_page_size = 20
+
+    def portfolio_list(self, request):
+        """List all portfolio items with pagination"""
+        page = request.GET.get('page', self.default_page)
+        page_size = request.GET.get('page_size', self.default_page_size)
+
+        items, pagination_data = paginate_queryset(self.queryset, page, page_size, request)
+        serializer = self.get_seiralizer(items, many=True)
+
+        return Response({
+            'portfolio_items': serializer.data,
+            'pagination': pagination_data
+        })
