@@ -59,14 +59,13 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
     default_page = 1
     default_page_size = 20
 
-    @action(detail=False, methods=['get'])
     def portfolio_list(self, request):
         """List all portfolio items with pagination"""
         page = request.GET.get('page', self.default_page)
         page_size = request.GET.get('page_size', self.default_page_size)
 
         items, pagination_data = paginate_queryset(self.queryset, page, page_size, request)
-        serializer = self.get_seiralizer(items, many=True)
+        serializer = self.get_serializer(items, many=True)
 
         return Response({
             'portfolio_items': serializer.data,
