@@ -59,7 +59,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
     default_page = 1
     default_page_size = 20
 
-    def portfolio_list(self, request):
+    def list(self, request):
         """List all portfolio items with pagination"""
         page = request.GET.get('page', self.default_page)
         page_size = request.GET.get('page_size', self.default_page_size)
@@ -72,8 +72,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             'pagination': pagination_data
         })
     
-    @action(detail=False, methods=['get'])
-    def portfolio_detail(self, request, pk=None):
+    def retrieve(self, request, pk=None):
         """Retrieve a portfolio item by ID"""
         try:
             item = self.queryset.get(id=pk)
@@ -83,7 +82,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
     
     @action(detail=False, methods=['get'])
-    def portfolio_search(self, request):
+    def search(self, request):
         """"Search portfolio items by text"""
         query = request.GET.get('q', '').strip()
         page = request.GET.get('page', self.default_page)
@@ -108,7 +107,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
         })
     
     @action(detail=False, methods=['get'])
-    def portfolio_filter(self, request):
+    def filter(self, request):
         """Filter portfolio items by category and service"""
         category = request.GET.get('category', '').strip()
         service = request.GET.get('service', '').strip()
@@ -138,7 +137,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
         })
     
     @action(detail=False, methods=['get'])
-    def portfolio_combined(self, request):
+    def combined(self, request):
         """Combined search and filtering"""
         query = request.GET.get('q', '').strip()
         category = request.GET.get('category', '').strip()
@@ -177,7 +176,7 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
         })
     
     @action(detail=False, methods=['get'])
-    def portfolio_by_category(self, request):
+    def by_category(self, request):
         """Get portfolio items by category"""
         category = request.GET.get('category', '').strip()
         page = request.GET.get('page', self.default_page)

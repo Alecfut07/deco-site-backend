@@ -15,10 +15,10 @@ urlpatterns = [
     path('api/', include(router.urls)),
 
     # Keep your existing endpoints for backward compatibility
-    path('api/gallery/', PortfolioItemViewSet.as_view({'get': 'portfolio_list'}), name='portfolio_list'),
-    path('api/gallery/<int:pk>/', PortfolioItemViewSet.as_view({'get': 'portfolio_detail'}), name='portfolio_detail'),
-    path('api/gallery/search/', PortfolioItemViewSet.as_view({'get': 'portfolio_search'}), name='portfolio_search'),
-    path('api/gallery/filter/', PortfolioItemViewSet.as_view({'get': 'portfolio_filter'}), name='portfolio_filter'),
-    path('api/gallery/combined/', PortfolioItemViewSet.as_view({'get': 'portfolio_combined'}), name='portfolio_combined'),
-    path('api/gallery/category/<str:category>/', PortfolioItemViewSet.as_view({'get': 'portfolio_by_category'}), name='portfolio_by_category'),
+    path('api/gallery/', PortfolioItemViewSet.as_view({'get': 'list'}), name='portfolio_list'),
+    path('api/gallery/<int:pk>/', PortfolioItemViewSet.as_view({'get': 'retrieve'}), name='portfolio_detail'),
+    path('api/gallery/search/', PortfolioItemViewSet.as_view({'get': 'search'}), name='portfolio_search'),
+    path('api/gallery/filter/', PortfolioItemViewSet.as_view({'get': 'filter'}), name='portfolio_filter'),
+    path('api/gallery/combined/', PortfolioItemViewSet.as_view({'get': 'combined'}), name='portfolio_combined'),
+    path('api/gallery/category/<str:category>/', PortfolioItemViewSet.as_view({'get': 'by_category'}), name='portfolio_by_category'),
 ]
