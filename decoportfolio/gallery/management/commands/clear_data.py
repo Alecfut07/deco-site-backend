@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from gallery.models import PortfolioItem, Service, Category
+from gallery.models import PortfolioItem, Service, Category, BusinessInfo
 
 class Command(BaseCommand):
     help = 'Clear all gallery data (portfolio items, services, and categories)'
@@ -34,6 +34,9 @@ class Command(BaseCommand):
 
             Category.objects.all().delete()
             self.stdout.write('  Deleted all categories')
+
+            BusinessInfo.objects.all().delete()
+            self.stdout.write('  Deleted all business information')
 
         self.stdout.write(
             self.style.SUCCESS('Successfully cleared all gallery data!')

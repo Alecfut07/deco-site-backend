@@ -20,11 +20,11 @@ class BusinessInfoAdmin(admin.ModelAdmin):
             'fields': ('years_experience', 'specialties')
         }),
         ('Status', {
-            'fields': ('is_active')
+            'fields': ('is_active',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse')
+            'classes': ('collapse',)
         }),
     )
 

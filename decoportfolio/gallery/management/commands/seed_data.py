@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from gallery.models import Category, Service, PortfolioItem
+from gallery.models import Category, Service, PortfolioItem, BusinessInfo
 
 class Command(BaseCommand):
     help = 'Seed the database with initial data for Ortega Reyes Remodeling and Restoration'
@@ -9,6 +9,9 @@ class Command(BaseCommand):
         self.stdout.write('Starting to seed database...')
 
         with transaction.atomic():
+            # Create business information
+            self.create_business_info()
+            
             # Create categories
             self.create_categories()
 
@@ -22,6 +25,36 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS('Successfully seeded database!')
         )
+
+    def create_business_info(self):
+        """Create Business Information"""
+        self.stdout.write("Creating Business Information...")
+
+        business_data = {
+            'company_name': 'Ortega Reyes Remodeling and Restoration',
+            'tagline': '25 Years of Professional Remodeling and Restoration',
+            'description': "Professional remodeling and restoration services specializing in bathrooms and kitchens. With over 25 years of experience, we deliver quality workmanship and exceptional customer service.",
+            'email': 'alo_57@live.com',
+            'phone': '(720) 434-3254',
+            'address': 'Serving at Denver, CO',
+            'years_experience': 25,
+            'specialties': 'Bathrooms, Kitchens, Interior Painting, Exterior Painting, Tiling, Flooring, Drywall, Plumbing',
+            'is_active': True
+        }
+
+        business_info, created = BusinessInfo.objects.get_or_create(
+            company_name=business_data['company_name'],
+            defaults=business_data
+        )
+
+        if created:
+            self.stdout.write(f'  Created business info: {business_info.company_name}')
+        else:
+            # Update existing business info
+            for key, value in business_data.items():
+                setattr(business_info, key, value)
+            business_info.save()
+            self.stdout.write(f'  Updated business info: {business_info.company_name}')
     
     def create_categories(self):
         """Create all categories"""
