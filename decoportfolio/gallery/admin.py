@@ -1,6 +1,32 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import PortfolioItem, Category, Service
+from .models import PortfolioItem, Category, Service, BusinessInfo
+
+@admin.register(BusinessInfo)
+class BusinessInfoAdmin(admin.ModelAdmin):
+    list_display = ['company_name', 'email', 'phone', 'years_experience', 'is_active']
+    list_editable = ['is_active']
+    search_fields = ['company_name', 'email', 'phone']
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('Company Information', {
+            'fields': ('company_name', 'tagline', 'description')
+        }),
+        ('Contact Information', {
+            'fields': ('email', 'phone', 'address')
+        }),
+        ('Business Details', {
+            'fields': ('years_experience', 'specialties')
+        }),
+        ('Status', {
+            'fields': ('is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse')
+        }),
+    )
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
