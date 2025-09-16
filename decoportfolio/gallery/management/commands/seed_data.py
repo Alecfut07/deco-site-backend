@@ -152,3 +152,58 @@ class Command(BaseCommand):
                 self.stdout.write(f'  Created service: {service.name}')
             else:
                 self.stdout.write(f'  Service already exists: {service.name}')
+
+    def create_portfolio_items(self):
+        """Create example portfolio items"""
+        self.stdout.write('Creating portfolio items...')
+
+        # Get categories
+        bathrooms_cat = Category.objects.get(name='Bathrooms')
+        kitchens_cat = Category.objects.get(name='Kitchens')
+        interior_cat = Category.objects.get(name='Interior')
+        exterior_cat = Category.objects.get(name='Exterior')
+
+        # Get services
+        shower_service = Service.objects.get(name='Shower Installation/Renovation')
+        tiling_kitchens_service = Service.objects.get(name='Tiling (Kitchens)')
+        interior_painting_service = Service.objects.get(name='Interior Painting')
+        exterior_painting_service = Service.objects.get(name='Exterior Painting')
+
+        portfolio_items_data = [
+            {
+                'title': 'Bathroom Renovation Example',
+                'description': 'Complete bathroom renovation with new shower, tiling, and plumbing work',
+                'category': bathrooms_cat,
+                'service': shower_service
+            },
+            {
+                'title': 'Kitchen Remodeling Example',
+                'description': 'Kitchen renovation with new flooring, tiling, and painting',
+                'category': kitchens_cat,
+                'service': tiling_kitchens_service
+            },
+            {
+                'title': 'Interior Painting Example',
+                'description': 'Professional interior painting services for living room',
+                'category': interior_cat,
+                'service': interior_painting_service
+            },
+            {
+                'title': 'Exterior Painting Example',
+                'description': 'Exterior house painting and restoration work',
+                'category': exterior_cat,
+                'service': exterior_painting_service
+            }
+        ]
+
+        for item_data in portfolio_items_data:
+            # Note: You'll need to add an image file for these items
+            # For now, we'll create them without images
+            portfolio_item, created = PortfolioItem.objects.get_or_create(
+                title=item_data['title'],
+                defaults=item_data
+            )
+            if created:
+                self.stdout.write(f'  Created portfolio item: {portfolio_item.title}')
+            else:
+                self.stdout.write(f'  Portfolio item already exists: {portfolio_item.title}')
