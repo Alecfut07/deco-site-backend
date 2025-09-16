@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import models
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import PortfolioItem, Category, Service
-from .serializers import PortfolioItemSerializer, CategorySerializer, ServiceSerializer
+from .models import PortfolioItem, Category, Service, BusinessInfo
+from .serializers import PortfolioItemSerializer, CategorySerializer, ServiceSerializer, BusinessInfoSerializer
 
 def paginate_queryset(queryset, page, page_size, request):
     """Helper function to paginate queryset and return paginated data"""
@@ -209,3 +209,26 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for services"""
     queryset = Service.objects.select_related('category')
     serializer_class = ServiceSerializer
+
+class BusinessInfoViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for business information"""
+    queryset = BusinessInfo.objects.filter(is_active=True)
+    serializer_class = BusinessInfoSerializer
+
+    def list(self, request):
+        """Get active business information"""
+        try:
+            business_info = self.queryset.first()
+            if not business_info:
+                return Response(
+                    {'error': 'Business information not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            serializer = self.get_serializer(business_info)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': 'Failed to retrieve business information'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

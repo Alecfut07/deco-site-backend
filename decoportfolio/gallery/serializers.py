@@ -1,5 +1,13 @@
 from rest_framework import serializers
-from .models import PortfolioItem, Category, Service
+from .models import PortfolioItem, Category, Service, BusinessInfo
+
+class BusinessInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessInfo
+        fields = [
+            'id', 'company_name', 'tagline', 'description', 'email', 
+            'phone', 'address', 'years_experience', 'specialties'
+        ]
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
