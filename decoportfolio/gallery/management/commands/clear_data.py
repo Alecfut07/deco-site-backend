@@ -12,7 +12,7 @@ class Command(BaseCommand):
             help='Confirm that you want to clear all data',
         )
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **options):
         if not options['confirm']:
             self.stdout.write(
                 self.style.WARNING(
