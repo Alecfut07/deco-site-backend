@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write('Starting to seed database...')
 
-        with transaction.atmoic():
+        with transaction.atomic():
             # Create categories
             self.create_categories()
 
