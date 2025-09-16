@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .viewsets import PortfolioItemViewSet, CategoryViewSet, ServiceViewSet
+from .viewsets import PortfolioItemViewSet, CategoryViewSet, ServiceViewSet, BusinessInfoViewSet
 
 # Create a router and register our viewsets
 router = DefaultRouter()
 router.register(r'portfolio-items', PortfolioItemViewSet, basename='portfolioitem')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'services', ServiceViewSet, basename='service')
+router.register(r'business-info', BusinessInfoViewSet, basename='businessinfo')
 
 app_name = 'gallery'
 
