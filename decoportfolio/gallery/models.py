@@ -39,10 +39,18 @@ class Service(models.Model):
     
 class PortfolioItem(models.Model):
     title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='porfolio/')
+    # image = models.ImageField(upload_to='porfolio/')
     description = models.TextField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='portfolio_items')
     service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True, related_name='portfolio_items')
+
+    # Multiple images (at least one required)
+    images = models.JSONField(default=list, help_text="List of image URLs")
+
+    # Before/After images (optional)
+    before_image = models.ImageField(upload_to='portfolio/before/', blank=True, null=True)
+    after_image = models.ImageField(upload_to='portfolio/after/', blank=True, null=True)
+    
     upload_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -50,3 +58,13 @@ class PortfolioItem(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_primary_image(self):
+        """Get the first image from the images list"""
+        if self.images:
+            return self.images[0]
+        return None
+    
+    def has_before_after(self):
+        """Check if this portfolio item has before/after images"""
+        return bool(self.before_image and self.after_image)
