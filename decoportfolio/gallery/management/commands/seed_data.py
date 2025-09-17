@@ -207,25 +207,33 @@ class Command(BaseCommand):
                 'title': 'Bathroom Renovation Example',
                 'description': 'Complete bathroom renovation with new shower, tiling, and plumbing work',
                 'category': bathrooms_cat,
-                'service': shower_service
+                'service': shower_service,
+                'images': [],  # Empty for now - will add images later
+                'is_before_after': True
             },
             {
                 'title': 'Kitchen Remodeling Example',
                 'description': 'Kitchen renovation with new flooring, tiling, and painting',
                 'category': kitchens_cat,
-                'service': tiling_kitchens_service
+                'service': tiling_kitchens_service,
+                'images': [],  # Empty for now - will add images later
+                'is_before_after': True
             },
             {
                 'title': 'Interior Painting Example',
                 'description': 'Professional interior painting services for living room',
                 'category': interior_cat,
-                'service': interior_painting_service
+                'service': interior_painting_service,
+                'images': [],  # Empty for now - will add images later
+                'is_before_after': False
             },
             {
                 'title': 'Exterior Painting Example',
                 'description': 'Exterior house painting and restoration work',
                 'category': exterior_cat,
-                'service': exterior_painting_service
+                'service': exterior_painting_service,
+                'images': [],  # Empty for now - will add images later
+                'is_before_after': False
             }
         ]
 
