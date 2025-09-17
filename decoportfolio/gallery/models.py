@@ -50,6 +50,8 @@ class PortfolioItem(models.Model):
     # Before/After images (optional)
     before_image = models.ImageField(upload_to='portfolio/before/', blank=True, null=True)
     after_image = models.ImageField(upload_to='portfolio/after/', blank=True, null=True)
+
+    is_before_after = models.BooleanField(default=False, help_text="Is this a before/after project?")
     
     upload_date = models.DateTimeField(auto_now_add=True)
 
