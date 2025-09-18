@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill, ResizeToFit, ResizeToCover
 from category.models import Category
 
 class BusinessInfo(models.Model):
@@ -44,13 +46,56 @@ class PortfolioItem(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='portfolio_items')
     service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True, related_name='portfolio_items')
 
-    # Multiple images (at least one required)
-    images = models.JSONField(default=list, help_text="List of image URLs")
+    # Original image (for admin and full-size viewing)
+    images = models.ImageField(upload_to='portfolio/original/')
+
+    # Thumbnails (auto-generated)
+    thumbnail = ProcessedImageField(
+        upload_to='portfolio/thumbnails/',
+        processors=[ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 85},
+        blank=True,
+        null=True
+    )
+
+    # Gallery image (optimized for gallery display)
+    gallery_image = ProcessedImageField(
+        upload_to='portfolio/gallery/',
+        processors=[ResizeToFit(800, 600)],
+        format=f'WebP',
+        options={'quality': 90},
+        blank=True,
+        null=True
+    )
 
     # Before/After images (optional)
     before_image = models.ImageField(upload_to='portfolio/before/', blank=True, null=True)
     after_image = models.ImageField(upload_to='portfolio/after/', blank=True, null=True)
 
+    # Before/After thumbnails (auto-generated)
+    before_thumbnail = ProcessedImageField(
+        upload_to='portfolio/before/thumbnails/',
+        processors=[ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 85},
+        blank=True,
+        null=True
+    )
+
+    after_thumbnail = ProcessedImageField(
+        upload_to='portfolio/after/thumbnails/',
+        processors=[ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 85},
+        blank=True,
+        null=True
+    )
+
+    # Multiple images (JSONField for image URLs)
+    images = models.JSONField(default=list, help_text="List of image URLs")
+
+    # Before/After flag
     is_before_after = models.BooleanField(default=False, help_text="Is this a before/after project?")
     
     upload_date = models.DateTimeField(auto_now_add=True)
