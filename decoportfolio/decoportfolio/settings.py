@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'gallery',
     'category',
+    'imagekit',
 ]
 
 MIDDLEWARE = [
