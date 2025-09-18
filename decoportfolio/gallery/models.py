@@ -47,7 +47,7 @@ class PortfolioItem(models.Model):
     service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True, related_name='portfolio_items')
 
     # Original image (for admin and full-size viewing)
-    images = models.ImageField(upload_to='portfolio/original/')
+    image = models.ImageField(upload_to='portfolio/original/')
 
     # Thumbnails (auto-generated)
     thumbnail = ProcessedImageField(
