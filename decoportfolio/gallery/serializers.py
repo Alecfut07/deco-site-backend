@@ -24,9 +24,13 @@ class ServiceSerializer(serializers.ModelSerializer):
 class PortfolioItemSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     service = ServiceSerializer(read_only=True)
-    primary_image_url = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    gallery_image_url = serializers.SerializerMethodField()
     before_image_url = serializers.SerializerMethodField()
     after_image_url = serializers.SerializerMethodField()
+    before_thumbnail_url = serializers.SerializerMethodField()
+    after_thumbnail_url = serializers.SerializerMethodField()
     image_count = serializers.SerializerMethodField()
     has_before_after = serializers.SerializerMethodField()
 
@@ -34,18 +38,33 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         model = PortfolioItem
         fields = [
             'id', 'title', 'description', 'category', 'service',
-            'images', 'primary_image_url', 'image_count',
-            'before_image_url', 'after_image_url', 'has_before_after',
-            'is_before_after', 'upload_date'
+            'image_url', 'thumbnail_url', 'gallery_image_url',
+            'before_image_url', 'after_image_url', 'before_thumbnail_url', 'after_thumbnail_url',
+            'images', 'image_count', 'has_before_after', 'is_before_after', 'upload_date'
         ]
 
-    def get_primary_image_url(self, obj):
-        primary_image = obj.get_primary_image()
-        if primary_image:
+    def get_image_url(self, obj):
+        if obj.image:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(primary_image)
-            return primary_image
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        return None
+
+    def get_gallery_image_url(self, obj):
+        if obj.gallery_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.gallery_image.url)
+            return obj.gallery_image.url
         return None
     
     def get_before_image_url(self, obj):
@@ -62,6 +81,22 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.after_image.url)
             return obj.after_image.url
+        return None
+
+    def get_before_thumbnail_url(self, obj):
+        if obj.before_thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.before_thumbnail.url)
+            return obj.before_thumbnail.url
+        return None
+
+    def get_after_thumbnail_url(self, obj):
+        if obj.after_thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.after_thumbnail.url)
+            return obj.after_thumbnail.url
         return None
         
     def get_image_count(self, obj):
