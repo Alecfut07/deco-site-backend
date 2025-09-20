@@ -54,7 +54,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(PortfolioItem)
 class PortfolioItemAdmin(admin.ModelAdmin):
-    list_display = ['title', 'category', 'service', 'image_count', 'has_before_after', 'upload_date', 'image_preview']
+    list_display = ['title', 'category', 'service', 'has_main_image', 'has_before_after', 'upload_date', 'image_preview']
     list_filter = ['category', 'service', 'is_before_after', 'upload_date']
     search_fields = ['title', 'description', 'category__name', 'service__name']
     ordering = ['-upload_date']
@@ -64,9 +64,20 @@ class PortfolioItemAdmin(admin.ModelAdmin):
         ('Content', {
             'fields': ('title', 'description')
         }),
-        ('Images', {
-            'fields': ('images', 'before_image', 'after_image'),
-            'description': 'Upload multiple images for the main portfolio. Before/After images are optional.'
+        ('Main Image', {
+            'fields': ('image',),
+            'description': 'Upload the main project image. Thumbnails will be generated automatically.'
+        }),
+        ('Before/After Images', {
+            'fields': ('before_image', 'after_image'),
+            'description': 'Upload before and after images (optional). Thumbnails will be generated automatically.'
+        }),
+        ('Additional Images', {
+            'fields': ('images',),
+            'description': 'Additional image URLs (optional). Use this for extra project photos.'
+        }),
+        ('Project Details', {
+            'fields': ('is_before_after',)
         }),
         ('Organization', {
             'fields': ('category', 'service')
@@ -76,9 +87,10 @@ class PortfolioItemAdmin(admin.ModelAdmin):
         }),
     )
 
-    def image_count(self, obj):
-        return len(obj.images) if obj.images else 0
-    image_count.short_description = 'Image Count'
+    def has_main_image(self, obj):
+        return bool(obj.image)
+    has_main_image.short_description = 'Has Main Image'
+    has_main_image.boolean = True
 
     def has_before_after(self, obj):
         return obj.has_before_after()
@@ -86,11 +98,15 @@ class PortfolioItemAdmin(admin.ModelAdmin):
     has_before_after.boolean = True
 
     def image_preview(self, obj):
-        primary_image = obj.get_primary_image()
-        if primary_image:
+        if obj.thumbnail:
             return format_html(
                 '<img src="{}" style="max-height: 50px; max-width: 50px; object-fit: cover;" />',
-                primary_image
+                obj.thumbnail.url
+            )
+        elif obj.image:
+            return format_html(
+                '<img src="{}" style="max-height: 50px; max-width: 50px; object-fit: cover;" />',
+                obj.image.url
             )
         return "No image"
-    image_preview.short_description = 'Primary Image'
+    image_preview.short_description = 'Image Preview'
