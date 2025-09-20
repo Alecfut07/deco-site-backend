@@ -41,15 +41,14 @@ class Service(models.Model):
     
 class PortfolioItem(models.Model):
     title = models.CharField(max_length=200)
-    # image = models.ImageField(upload_to='porfolio/')
     description = models.TextField(blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='portfolio_items')
     service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True, related_name='portfolio_items')
 
-    # Original image (for admin and full-size viewing)
-    image = models.ImageField(upload_to='portfolio/original/')
+    # Main image (for admin upload and primary display)
+    image = models.ImageField(upload_to='portfolio/main/', help_text="Main project image")
 
-    # Thumbnails (auto-generated)
+    # Thumbnails (auto-generated from main image)
     thumbnail = ProcessedImageField(
         upload_to='portfolio/thumbnails/',
         processors=[ResizeToFill(300, 300)],
@@ -93,7 +92,7 @@ class PortfolioItem(models.Model):
     )
 
     # Multiple images (JSONField for image URLs)
-    images = models.JSONField(default=list, help_text="List of image URLs")
+    images = models.JSONField(default=list, help_text="Additional image URLs (optional)")
 
     # Before/After flag
     is_before_after = models.BooleanField(default=False, help_text="Is this a before/after project?")
