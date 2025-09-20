@@ -1,9 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
-from imagekit.models import ProcessedImageField
-from imagekit.processors import ResizeToFill, ResizeToFit
-from imagekit.utils import get_cache
 import os
 from .models import PortfolioItem
 
