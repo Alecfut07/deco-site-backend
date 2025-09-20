@@ -13,7 +13,7 @@ def generate_thumbnails(sender, instance, created, **kwargs):
     print(f"Has before image: {bool(instance.before_image)}")
     print(f"Has after image: {bool(instance.after_image)}")
 
-    # Generate main image thumbnail
+    # Generate main image thumbnail and gallery image
     if instance.image:
         try:
             # Create thumbnail using ImageKit processors
@@ -23,8 +23,9 @@ def generate_thumbnails(sender, instance, created, **kwargs):
             img_path = instance.image.path
             img = Image.open(img_path)
 
-            # Create thumbnail
-            img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+            # Create thumbnail (300x300)
+            thumbnail_img = img.copy()
+            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
 
             # Save thumbnail
             thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'thumbnails')
@@ -32,50 +33,97 @@ def generate_thumbnails(sender, instance, created, **kwargs):
 
             thumbnail_filename = f"thumb_{os.path.basename(instance.image.name)}"
             thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            img.save(thumbnail_path, 'JPEG', quality=85)
+            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
+
+            # Create gallery image (800x600)
+            gallery_img = img.copy()
+            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
+
+            # Save gallery image
+            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'gallery')
+            os.makedirs(gallery_dir, exist_ok=True)
+
+            gallery_filename = f"gallery_{os.path.basename(instance.image.name)}"
+            gallery_path = os.path.join(gallery_dir, gallery_filename)
+            gallery_img.save(gallery_path, 'JPEG', quality=90)
             
             print(f"Generated main thumbnail: {thumbnail_path}")
+            print(f"Generated main gallery image: {gallery_path}")
         except Exception as e:
-            print(f"Error generating main thumbnail: {e}")
+            print(f"Error generating main images: {e}")
 
-    # Generate before image thumbnail
+    # Generate before image thumbnail and gallery image
     if instance.before_image:
         try:
             from PIL import Image
             
             img_path = instance.before_image.path
             img = Image.open(img_path)
-            img.thumbnail((300, 300), Image.Resampling.LANCZOS)
-            
+
+            # Create thumbnail (300x300)
+            thumbnail_img = img.copy()
+            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+
+            # Save thumbnail
             thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'thumbnails')
             os.makedirs(thumbnail_dir, exist_ok=True)
             
             thumbnail_filename = f"thumb_{os.path.basename(instance.before_image.name)}"
             thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            img.save(thumbnail_path, 'JPEG', quality=85)
+            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
+
+            # Create gallery image (800x600)
+            gallery_img = img.copy()
+            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
+
+            # Save gallery image
+            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'gallery')
+            os.makedirs(gallery_dir, exist_ok=True)
+
+            gallery_filename = f"gallery_{os.path.basename(instance.before_image.name)}"
+            gallery_path = os.path.join(gallery_dir, gallery_filename)
+            gallery_img.save(gallery_path, 'JPEG', quality=90)
             
             print(f"Generated before thumbnail: {thumbnail_path}")
+            print(f"Generated before gallery image: {gallery_path}")
         except Exception as e:
-            print(f"Error generating before thumbnail: {e}")
+            print(f"Error generating before images: {e}")
 
-    # Generate after image thumbnail
+    # Generate after image thumbnail and gallery image
     if instance.after_image:
         try:
             from PIL import Image
             
             img_path = instance.after_image.path
             img = Image.open(img_path)
-            img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+
+            # Create thumbnail (300x300)
+            thumbnail_img = img.copy()
+            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
             
+            # Save thumbnail
             thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'thumbnails')
             os.makedirs(thumbnail_dir, exist_ok=True)
             
             thumbnail_filename = f"thumb_{os.path.basename(instance.after_image.name)}"
             thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            img.save(thumbnail_path, 'JPEG', quality=85)
+            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
+
+            # Create gallery image (800x600)
+            gallery_img = img.copy()
+            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
+
+            # Save gallery image
+            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'gallery')
+            os.makedirs(gallery_dir, exist_ok=True)
+
+            gallery_filename = f"gallery_{os.path.basename(instance.after_image.name)}"
+            gallery_path = os.path.join(gallery_dir, gallery_filename)
+            gallery_img.save(gallery_path, 'JPEG', quality=90)
             
             print(f"Generated after thumbnail: {thumbnail_path}")
+            print(f"Generated after gallery image: {gallery_path}")
         except Exception as e:
-            print(f"Error generating after thumbnail: {e}")
+            print(f"Error generating after images: {e}")
 
     print("=== GENERATE THUMBNAILS SIGNAL COMPLETED ===")
