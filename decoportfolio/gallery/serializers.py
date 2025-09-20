@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.conf import settings
+import os
 from .models import PortfolioItem, Category, Service, BusinessInfo
 
 class BusinessInfoSerializer(serializers.ModelSerializer):
@@ -52,11 +54,18 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         return None
 
     def get_thumbnail_url(self, obj):
-        if obj.thumbnail:
+        if obj.image:
+            # Get the original image filename
+            original_filename = os.path.basename(obj.image.name)
+            thumbnail_filename = f"thumb_{original_filename}"
+
+            # Construct thumbnail path
+            thumbnail_path = f"/media/portfolio/thumbnails/{thumbnail_filename}"
+
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.thumbnail.url)
-            return obj.thumbnail.url
+                return request.build_absolute_uri(thumbnail_path)
+            return thumbnail_path
         return None
 
     def get_gallery_image_url(self, obj):
@@ -84,19 +93,27 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         return None
 
     def get_before_thumbnail_url(self, obj):
-        if obj.before_thumbnail:
+        if obj.before_image:
+            original_filename = os.path.basename(obj.before_image.name)
+            thumbnail_filename = f"thumb_{original_filename}"
+            thumbnail_path = f"/media/portfolio/before/thumbnails/{thumbnail_filename}"
+
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.before_thumbnail.url)
-            return obj.before_thumbnail.url
+                return request.build_absolute_uri(thumbnail_path)
+            return thumbnail_path
         return None
 
     def get_after_thumbnail_url(self, obj):
-        if obj.after_thumbnail:
+        if obj.after_image:
+            original_filename = os.path.basename(obj.after_image.name)
+            thumbnail_filename = f"thumb_{original_filename}"
+            thumbnail_path = f"/media/portfolio/after/thumbnails/{thumbnail_filename}"
+
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.after_thumbnail.url)
-            return obj.after_thumbnail.url
+                return request.build_absolute_uri(thumbnail_path)
+            return thumbnail_path
         return None
         
     def get_image_count(self, obj):
