@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill, ResizeToFit, ResizeToCover
@@ -114,3 +116,32 @@ class PortfolioItem(models.Model):
     def has_before_after(self):
         """Check if this portfolio item has before/after images"""
         return bool(self.before_image and self.after_image)
+
+@receiver(post_save, sender=PortfolioItem)
+def generate_thumbnails(sender, instance, created, **kwargs):
+    """Generate thumbnails when images are uploaded"""
+
+    # Generate main image thumbnail
+    if instance.image:
+        try:
+            # Force thumbnail generation by accessing the field
+            instance.thumbnail.url
+            print(f"Generated thumbnail for the main image: {instance.title}")
+        except Exception as e:
+            print(f"Error generating main thumbnail: {e}")
+
+    # Generate before image thumbnail
+    if instance.before_image:
+        try:
+            instance.before_thumbnail.url
+            print(f"Generated before thumbnail for: {instance.title}")
+        except Exception as e:
+            print(f"Error generating before thumbnail: {e}")
+
+    # Generate after image thumbnail
+    if instance.after_image:
+        try:
+            instance.after_thumbnail.url
+            print(f"Generated after thumbnail for: {instance.title}")
+        except Exception as e:
+            print(f"Error generating after thumbnail: {e}")
