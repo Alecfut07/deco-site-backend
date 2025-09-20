@@ -69,11 +69,18 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         return None
 
     def get_gallery_image_url(self, obj):
-        if obj.gallery_image:
+        if obj.image:
+            # Get the original image filename
+            original_filename = os.path.basename(obj.image.name)
+            gallery_filename = f"gallery_{original_filename}"
+
+            # Construct the gallery image path
+            gallery_path = f"/media/portfolio/gallery/{gallery_filename}"
+
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.gallery_image.url)
-            return obj.gallery_image.url
+                return request.build_absolute_uri(gallery_path)
+            return gallery_path
         return None
     
     def get_before_image_url(self, obj):
