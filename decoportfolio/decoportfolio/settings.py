@@ -59,6 +59,27 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000'
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.cliente.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'retry_on_timeout': True,
+            }
+        },
+        'TIMEOUT': 300, # 5 minutes default timeout
+        'KEY_PREFIX': 'decoportfolio',
+        'VERSION': 1,
+    }
+}
+
+# Session caching (optional but recommended)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
 ROOT_URLCONF = 'decoportfolio.urls'
 
 TEMPLATES = [
