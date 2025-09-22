@@ -1,8 +1,27 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
+from django.core.cache import cache
 import os
 from .models import PortfolioItem
+
+@receiver(post_save, sender=PortfolioItem)
+def invalidate_portfolio_cache(sender, instance, **kwargs):
+    """Clear related caches when portfolio item is saved"""
+    print("Invalidating portfolio caches...")
+
+    # Clear list caches (all variations)
+    cache.delete_many([
+        'portfolio_list_',
+        f'portfolio_list_category_{instance.category.name.lower()}',
+        'portfolio_search_',
+        'portfolio_filter_',
+    ])
+
+    # Clear individual item cache
+    cache.delete(f'portfolio_item_{instance.id}')
+
+    print("Portfolio caches invalidated")
 
 @receiver(post_save, sender=PortfolioItem)
 def generate_thumbnails(sender, instance, created, **kwargs):
