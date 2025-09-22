@@ -2,7 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import models
+from django.core.cache import cache
+from django.core.cache.utils import make_template_fragment_key
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import json
 from .models import PortfolioItem, Category, Service, BusinessInfo
 from .serializers import PortfolioItemSerializer, CategorySerializer, ServiceSerializer, BusinessInfoSerializer
 
@@ -59,27 +62,68 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
     default_page = 1
     default_page_size = 20
 
-    def list(self, request):
-        """List all portfolio items with pagination"""
-        page = request.GET.get('page', self.default_page)
-        page_size = request.GET.get('page_size', self.default_page_size)
+    def list(self, request, *args, **kwargs):
+        # Check cache first
+        cache_key = f"portfolio_list_{request.GET.urlencode()}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            print(f"Serving from cache: {cache_key}")
+            return Response(cached_data)
+
+        # Generate response if not in cache
+        print(f"Generating new response for: {cache_key}")
+        queryset = self.get_queryset()
+
+        # Apply filters
+        category = request.GET.get('category')
+        if category:
+            queryset = queryset.filter(category__name__iexact=category)
+
+        # Pagination
+        page = int(request.GET.get('page', self.default_page))
+        page_size = min(int(request.GET.get('page_size', 12)), 100)
 
         items, pagination_data = paginate_queryset(self.queryset, page, page_size, request)
         serializer = self.get_serializer(items, many=True)
 
-        return Response({
+        # Prepare response data
+        response_data = {
             'portfolio_items': serializer.data,
             'pagination': pagination_data
-        })
+        }
+
+        # Cache the response for 5 minutes
+        cache.set(cache_key, response_data, 300)
+
+        return Response(response_data)
     
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, *args, **kwargs):
         """Retrieve a portfolio item by ID"""
-        try:
-            item = self.queryset.get(id=pk)
-            serializer = self.get_serializer(item)
-            return Response(serializer.data)
-        except PortfolioItem.DoesNotExist:
-            return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Check cache first
+        cache_key = f"portfolio_item_{kwargs['pk']}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            print(f"Serving from cache: {cache_key}")
+            return Response(cached_data)
+
+        # Generate response if not in cache
+        print(f"Generating new response for: {cache_key}")
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        # Cache for 10 minutes (individual items change less frequently)
+        cache.set(cache_key, serializer.data, 600)
+
+        # try:
+        #     item = self.queryset.get(id=pk)
+        #     serializer = self.get_serializer(item)
+        #     return Response(serializer.data)
+        # except PortfolioItem.DoesNotExist:
+        #     return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def search(self, request):
