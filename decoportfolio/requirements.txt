@@ -3,7 +3,9 @@ Django==5.2.5
 django-appconf==1.1.0
 django-cors-headers==4.7.0
 django-imagekit==5.0.0
+django-redis==6.0.0
 djangorestframework==3.16.1
 pilkit==3.0
 pillow==11.3.0
+redis==6.4.0
 sqlparse==0.5.3
