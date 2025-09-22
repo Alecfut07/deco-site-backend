@@ -23,6 +23,25 @@ def invalidate_portfolio_cache(sender, instance, **kwargs):
 
     print("Portfolio caches invalidated")
 
+@receiver(post_delete, sender=PortfolioItem)
+def invalidate_portfolio_cache_on_delete(sender, instance, **kwargs):
+    """Clear related caches when portfolio item is deleted"""
+    print("Invalidating portfolio caches (delete)...")
+
+    # Clear list caches
+    cache.delete_many([
+        'portfolio_list_',
+        f'portfolio_list_category_{instance.category.name.lower()}',
+        'portfolio_search_',
+        'portfolio_filter_',
+    ])
+
+    # Clear individual item cache
+    cache.delete(f'portfolio_item_{instance.id}')
+
+    print("Portfolio caches invalidated")
+
+
 @receiver(post_save, sender=PortfolioItem)
 def generate_thumbnails(sender, instance, created, **kwargs):
     """Generate thumbnails when images are uploaded"""
