@@ -84,3 +84,15 @@ class Command(BaseCommand):
         cache.set('categories_list_', serializer.data, 600)
 
         self.stdout.write(f"Cached {len(categories)} categories")
+
+    def warm_services_cache(self, request):
+        """Warm services cache"""
+        self.stdout.write("Warming services cache...")
+
+        services = Service.objects.select_related('category').filter(is_active=True)
+        serializer = ServiceSerializer(services, many=True)
+        cache.set('services_list_', serializer.data, 600)
+
+        self.stdout.write(f"Cached {len(services)} services")
+
+    
