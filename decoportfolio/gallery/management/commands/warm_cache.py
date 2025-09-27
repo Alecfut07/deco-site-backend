@@ -75,4 +75,12 @@ class Command(BaseCommand):
         cache.set('portfolio_list_', cache_data, 300)
         self.stdout.write(f"Cached {len(items)} portfolio items")
 
-    
+    def warm_categories_cache(self, request):
+        """Warm categories cache"""
+        self.stdout.write("Warming categories cache...")
+
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        cache.set('categories_list_', serializer.data, 600)
+
+        self.stdout.write(f"Cached {len(categories)} categories")
