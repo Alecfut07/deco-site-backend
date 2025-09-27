@@ -164,3 +164,16 @@ def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs
     invalidate_related_caches(instance)
 
     print("=== CACHE INVALIDATION COMPLETED ===\n")
+
+@receiver(post_delete, sender=PortfolioItem)
+def cleanup_and_invalidate_cache(sender, instance, **kwargs):
+    """Cleanup files and invalidate cache when item is deleted"""
+    print(f"=== DELETING PORTFOLIO ITEM: {instance.title} ===")
+
+    # Clean up images files (optional)
+    # ... (add file cleanup logic if needed)
+
+    # Invalidate related caches
+    invalidate_related_caches(instance)
+
+    print("=== DELETION AND CACHE INVALIDATION COMPLETED ===\n")
