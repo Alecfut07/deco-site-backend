@@ -208,3 +208,15 @@ def invalidate_service_cache(sender, instance, **kwargs):
     for key in cache_keys:
         cache.delete(key)
     print(f"Cleared service-related caches for: {instance.name}")
+
+@receiver(post_save, sender=BusinessInfo)
+def invalidate_business_cache(sender, instance, **kwargs):
+    """Invalidate cache when business info is updated"""
+    cache_keys = [
+        'business_info_',
+        'business_info_list_',
+    ]
+
+    for key in cache_keys:
+        cache.delete(key)
+    print(f"Cleared business info caches")
