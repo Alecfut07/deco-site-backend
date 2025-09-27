@@ -1,0 +1,22 @@
+# Run the redis container
+docker compose up -d redis
+
+# Check if Redis is running
+docker compose ps
+
+# Stop container of redis
+docker stop decoportfolio_redis
+
+# Delete container of redis
+docker rm decoportfolio_redis
+
+# View Redis logs (optional)
+docker compose logs redis
+
+# Connect to Redis container
+docker exec -it decoportfolio_redis redis-cli
+
+# Inside of the Redis container to test it with redis-cli
+127.0.0.1:6379> SELECT 1 # Select the redis database "1"
+127.0.0.1:6379> KEYS decoportfolio:1:*
+127.0.0.1:6379> GET decoportfolio:1:portfolio_list_
