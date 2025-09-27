@@ -1,9 +1,42 @@
+import os
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
 from django.core.cache import cache
-import os
-from .models import PortfolioItem
+from PIL import Image
+from .models import PortfolioItem, Category, Service, BusinessInfo
+
+def invalidate_related_caches(instance):
+    """Smart cache invalidation for related data"""
+    cache_keys_to_clear = []
+    
+    cache_keys_to_clear.extend([
+        'portfolio_list_',
+        f'portfolio_category_{instance.category.id if instance.category else "all"}_',
+        f'portfolio_service_{instance.service.id if instance.service else "all"}_',
+    ])
+
+    # Clear search and filter caches
+    cache_keys_to_clear.extend([
+        'portfolio_search_',
+        'portfolio_filter_',
+        'portfolio_combined_',
+    ])
+
+    # Clear individual item cache
+    cache_keys_to_clear.append(f'portfolio_item_{instance.id}')
+
+    # Clear category and service related caches
+    if hasattr(instance, 'category') and instance.category:
+        cache_keys_to_clear.extend([
+            f'category_{instance.category.id}',
+            f'service_category_{instance.category.id}_',
+        ])
+
+    # Clear all matching cache keys
+    for key in cache_keys_to_clear:
+        cache.delete(key)
+        print(f"Cleared cache key: {key}")
 
 @receiver(post_save, sender=PortfolioItem)
 def invalidate_portfolio_cache(sender, instance, **kwargs):
