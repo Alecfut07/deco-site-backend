@@ -39,10 +39,10 @@ def invalidate_related_caches(instance):
         print(f"Cleared cache key: {key}")
 
 @receiver(post_save, sender=PortfolioItem)
-def generate_thumbnails(sender, instance, created, **kwargs):
-    """Generate thumbnails when images are uploaded"""
-    print(f"=== GENERATE THUMBNAILS SIGNAL FIRED for {instance.title} ===")
-    print(f"Created: {created}")
+def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs):
+    """Generate thumbnails and invalidate related caches"""
+    print(f"=== PROCESSING PORTFOLIO ITEM: {instance.title} ===")
+    print(f"Created: {created}, Updated: not created")
     print(f"Has main image: {bool(instance.image)}")
     print(f"Has before image: {bool(instance.before_image)}")
     print(f"Has after image: {bool(instance.after_image)}")
@@ -160,4 +160,7 @@ def generate_thumbnails(sender, instance, created, **kwargs):
         except Exception as e:
             print(f"Error generating after images: {e}")
 
-    print("=== GENERATE THUMBNAILS SIGNAL COMPLETED ===")
+    # Smart cache invalidation
+    invalidate_related_caches(instance)
+
+    print("=== CACHE INVALIDATION COMPLETED ===\n")
