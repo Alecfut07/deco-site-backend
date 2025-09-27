@@ -177,3 +177,18 @@ def cleanup_and_invalidate_cache(sender, instance, **kwargs):
     invalidate_related_caches(instance)
 
     print("=== DELETION AND CACHE INVALIDATION COMPLETED ===\n")
+
+@receiver(post_save, sender=Category)
+def invalidate_category_cache(sender, instance, **kwargs):
+    """Invalidate cache when category is updated"""
+    cache_keys = [
+        f'category_{instance.id}',
+        'portfolio_list_',
+        'portfolio_search_',
+        'portfolio_filter_',
+        'portfolio_combined_',
+    ]
+
+    for key in cache_keys:
+        cache.delete(key)
+    print(f"Cleared category-related caches for: {instance.name}")
