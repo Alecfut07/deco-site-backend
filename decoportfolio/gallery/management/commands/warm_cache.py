@@ -95,4 +95,14 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Cached {len(services)} services")
 
+    def warm_business_cache(self, request):
+        """Warm business info cache"""
+        self.stdout.write("Warming business info cache...")
+
+        business_info = BusinessInfo.objects.filter(is_active=True).first()
+        if business_info:
+            serializer = BusinessInfoSerializer(business_info)
+            cache.set('business_info_', serializer.data, 1800) # 30 minutes
+            self.stdout.write("Cached business info")
+    
     
