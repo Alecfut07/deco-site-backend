@@ -192,3 +192,19 @@ def invalidate_category_cache(sender, instance, **kwargs):
     for key in cache_keys:
         cache.delete(key)
     print(f"Cleared category-related caches for: {instance.name}")
+
+@receiver(post_save, sender=Service)
+def invalidate_service_cache(sender, instance, **kwargs):
+    """Invalidate cache when service is updated"""
+    cache_keys = [
+        f'service_{instance.id}',
+        f'service_category_{instance.category.id}_',
+        'portfolio_list_',
+        'portfolio_search_',
+        'portfolio_filter_',
+        'portfolio_combined_',
+    ]
+
+    for key in cache_keys:
+        cache.delete(key)
+    print(f"Cleared service-related caches for: {instance.name}")
