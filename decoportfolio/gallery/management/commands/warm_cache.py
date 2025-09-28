@@ -105,4 +105,24 @@ class Command(BaseCommand):
             cache.set('business_info_', serializer.data, 1800) # 30 minutes
             self.stdout.write("Cached business info")
     
-    
+    def warm_search_caches(self, request):
+        """Warm common search/filter caches"""
+        self.stdout.write("Warming search/filter caches...")
+
+        # Common search terms
+        common_searches = ['interior', 'exterior', 'painting', 'bathroom', 'kitchen']
+
+        for term in common_searches:
+            items = PortfolioItem.objects.filter(
+                title__icontains=term
+            ).select_related('category', 'service')[:20]
+
+            if items:
+                serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+                cache_key = f'portfolio_search_{term}_'
+                cache.set(cache_key, {
+                    'portfolio_items': serializer.data,
+                    'search_term': term,
+                    'total_results': len(items)
+                }, 300)
+                self.stdout.write(f"Cached search for '{term}' ({len(items)} results)")
