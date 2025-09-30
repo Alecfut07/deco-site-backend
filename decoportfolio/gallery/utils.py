@@ -70,3 +70,13 @@ class AdvancedCache:
 
         print(f"Cache miss: {key}")
         return None
+
+    @classmethod
+    def delete(cls, key, version=None):
+        """Delete cache with versioning"""
+        version = version or cls.CACHE_VERSION
+        versioned_key = f"{key}:v{version}"
+        cache.delete(versioned_key)
+        print(f"Deleted cache: {key} (version: {version})")
+
+    
