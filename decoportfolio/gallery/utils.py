@@ -20,4 +20,8 @@ class AdvancedCache:
             return base64.b64encode(compressed).decode('utf-8'), True
         return json_data, False
     
-    
+    @classmethod
+    def _decompress_data(cls, data, is_compressed):
+        """Decompress data if it was compressed"""
+        if is_compressed:
+            compressed_data = base64.b64decode(data.encode('utf-8'))
