@@ -48,3 +48,25 @@ class AdvancedCache:
 
         cache.set(versioned_key, cache_data, timeout)
         print(f"Cached {key} (compressed: {is_compressed}, version: {version})")
+
+    @classmethod
+    def get(cls, key, version=None):
+        """Get cache with decompression and versioning"""
+        version = version or cls.CACHE_VERSION
+        versioned_key = f"{key}:v{version}"
+
+        cache_data = cache.get(versioned_key)
+        if cache_data:
+            try:
+                data = cls._decompress_data(
+                    cache_data['data'],
+                    cache_data.get('compressed', False)
+                )
+                print(f"Cache hit: {key} (version: {version})")
+                return data
+            except Exception as e:
+                print(f"Cache decompression error: {e}")
+                cache.delete(versioned_key)
+
+        print(f"Cache miss: {key}")
+        return None
