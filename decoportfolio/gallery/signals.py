@@ -42,123 +42,76 @@ def invalidate_related_caches(instance):
 def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs):
     """Generate thumbnails and invalidate related caches"""
     print(f"=== PROCESSING PORTFOLIO ITEM: {instance.title} ===")
-    print(f"Created: {created}, Updated: not created")
+    print(f"Created: {created}, Updated: {not created}")
     print(f"Has main image: {bool(instance.image)}")
     print(f"Has before image: {bool(instance.before_image)}")
     print(f"Has after image: {bool(instance.after_image)}")
 
-    # Generate main image thumbnail and gallery image
+    def generate_image_variants(image_field, base_dir, image_type):
+        """Helper function to generate thumbnail and gallery images"""
+        if not image_field:
+            return
+        
+        try:
+            # Check if image file exists on disk
+            if not os.path.exists(image_field.path):
+                print(f"Image file not found on disk: {image_field.path}")
+                return
+            
+            # Open the original image
+            img = Image.open(image_field.path)
+
+            # Get original format and determine output format
+            original_format = img.format
+            output_format = 'JPEG' if original_format in ['JPEG', 'JPG'] else 'PNG'
+
+            # Create thumbnail (300x300)
+            thumbnail_img = img.copy()
+            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+
+            # Save thumbnail
+            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, base_dir, 'thumbnails')
+            os.makedirs(thumbnail_dir, exist_ok=True)
+
+            thumbnail_filename = f"thumb_{os.path.basename(image_field.name)}"
+            thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
+
+            # Convert to RGB if saving as JPEG (JPEG doesn't support transparency)
+            if output_format == 'JPEG' and thumbnail_img.mode in ['RGBA', 'LA', 'P']:
+                thumbnail_img = thumbnail_img.convert('RGB')
+
+            thumbnail_img.save(thumbnail_path, output_format, quality=85)
+
+            # Create gallery image
+            gallery_dir = os.path.join(settings.MEDIA_ROOT, base_dir, 'gallery')
+            os.makedirs(gallery_dir, exist_ok=True)
+
+            gallery_filename = f"gallery_{os.path.basename(image_field.name)}"
+            gallery_path = os.path.join(gallery_dir, gallery_filename)
+
+            # Convert to RGB if saving as JPEG
+            if output_format == 'JPEG' and gallery_img.mode in ['RGBA', 'LA', 'P']:
+                gallery_img = gallery_img.convert('RGB')
+
+            gallery_img.save(gallery_path, output_format, quality=90)
+
+            print(f"Generated {image_type} thumbnail: {thumbnail_path}")
+            print(f"Generated {image_type} gallery image: {gallery_path}")
+        
+        except Exception as e:
+            print(f"Error generating {image_type} images: {e}")
+
+    # Generate main image variants
     if instance.image:
-        try:
-            # Create thumbnail using ImageKit processors
-            from PIL import Image
-
-            # Open image the original image
-            img_path = instance.image.path
-            img = Image.open(img_path)
-
-            # Create thumbnail (300x300)
-            thumbnail_img = img.copy()
-            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
-
-            # Save thumbnail
-            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'thumbnails')
-            os.makedirs(thumbnail_dir, exist_ok=True)
-
-            thumbnail_filename = f"thumb_{os.path.basename(instance.image.name)}"
-            thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
-
-            # Create gallery image (800x600)
-            gallery_img = img.copy()
-            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
-
-            # Save gallery image
-            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'gallery')
-            os.makedirs(gallery_dir, exist_ok=True)
-
-            gallery_filename = f"gallery_{os.path.basename(instance.image.name)}"
-            gallery_path = os.path.join(gallery_dir, gallery_filename)
-            gallery_img.save(gallery_path, 'JPEG', quality=90)
-            
-            print(f"Generated main thumbnail: {thumbnail_path}")
-            print(f"Generated main gallery image: {gallery_path}")
-        except Exception as e:
-            print(f"Error generating main images: {e}")
-
-    # Generate before image thumbnail and gallery image
+        generate_image_variants(instance.image, 'portfolio', 'main')
+    
+    # Generate before image variants
     if instance.before_image:
-        try:
-            from PIL import Image
-            
-            img_path = instance.before_image.path
-            img = Image.open(img_path)
-
-            # Create thumbnail (300x300)
-            thumbnail_img = img.copy()
-            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
-
-            # Save thumbnail
-            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'thumbnails')
-            os.makedirs(thumbnail_dir, exist_ok=True)
-            
-            thumbnail_filename = f"thumb_{os.path.basename(instance.before_image.name)}"
-            thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
-
-            # Create gallery image (800x600)
-            gallery_img = img.copy()
-            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
-
-            # Save gallery image
-            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'gallery')
-            os.makedirs(gallery_dir, exist_ok=True)
-
-            gallery_filename = f"gallery_{os.path.basename(instance.before_image.name)}"
-            gallery_path = os.path.join(gallery_dir, gallery_filename)
-            gallery_img.save(gallery_path, 'JPEG', quality=90)
-            
-            print(f"Generated before thumbnail: {thumbnail_path}")
-            print(f"Generated before gallery image: {gallery_path}")
-        except Exception as e:
-            print(f"Error generating before images: {e}")
-
-    # Generate after image thumbnail and gallery image
+        generate_image_variants(instance.before_image, 'portfolio/before', 'before')
+    
+    # Generate after image variants
     if instance.after_image:
-        try:
-            from PIL import Image
-            
-            img_path = instance.after_image.path
-            img = Image.open(img_path)
-
-            # Create thumbnail (300x300)
-            thumbnail_img = img.copy()
-            thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
-            
-            # Save thumbnail
-            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'thumbnails')
-            os.makedirs(thumbnail_dir, exist_ok=True)
-            
-            thumbnail_filename = f"thumb_{os.path.basename(instance.after_image.name)}"
-            thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
-            thumbnail_img.save(thumbnail_path, 'JPEG', quality=85)
-
-            # Create gallery image (800x600)
-            gallery_img = img.copy()
-            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
-
-            # Save gallery image
-            gallery_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'gallery')
-            os.makedirs(gallery_dir, exist_ok=True)
-
-            gallery_filename = f"gallery_{os.path.basename(instance.after_image.name)}"
-            gallery_path = os.path.join(gallery_dir, gallery_filename)
-            gallery_img.save(gallery_path, 'JPEG', quality=90)
-            
-            print(f"Generated after thumbnail: {thumbnail_path}")
-            print(f"Generated after gallery image: {gallery_path}")
-        except Exception as e:
-            print(f"Error generating after images: {e}")
+        generate_image_variants(instance.after_image, 'portfolio/after', 'after')
 
     # Smart cache invalidation
     invalidate_related_caches(instance)
@@ -249,7 +202,7 @@ def cleanup_and_invalidate_cache(sender, instance, **kwargs):
                 print(f"Deleted file: {file_path}")
         except Exception as e:
             print(f"Error deleting file {file_path}: {e}")
-            
+
     print(f"Cleaned up {deleted_count} files")
 
     # Invalidate related caches
