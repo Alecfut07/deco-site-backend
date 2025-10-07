@@ -43,3 +43,19 @@ class CacheHealthCheck:
             
         except Exception as e:
             return False, f"Cache performance test failed: {e}"
+    
+    @staticmethod
+    def get_health_status():
+        """Get overall cache health status"""
+        status = {
+            'redis_connection': CacheHealthCheck.check_redis_connection(),
+            'cache_performance': CacheHealthCheck.check_cache_performance(),
+            'status': time.time(),
+        }
+
+        overall_status = all(result[0] for result in status.values() if isinstance(result, tuple))
+
+        return {
+            'healthy': overall_status,
+            'details': status
+        }
