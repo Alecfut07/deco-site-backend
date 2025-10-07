@@ -170,8 +170,87 @@ def cleanup_and_invalidate_cache(sender, instance, **kwargs):
     """Cleanup files and invalidate cache when item is deleted"""
     print(f"=== DELETING PORTFOLIO ITEM: {instance.title} ===")
 
-    # Clean up images files (optional)
-    # ... (add file cleanup logic if needed)
+    # Clean up image files
+    files_to_delete = []
+
+    # Main image and its generated files
+    if instance.image:
+        try:
+            # Original main image
+            if os.path.exists(instance.image.path):
+                files_to_delete.append(instance.image.path)
+            
+            # Main image thumbnail
+            thumbnail_filename = f"thumb_{os.path.basename(instance.image.name)}"
+            thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'thumbnails', thumbnail_filename)
+            if os.path.exists(thumbnail_path):
+                files_to_delete.append(thumbnail_path)
+
+            # Main image gallery version
+            gallery_filename = f"gallery_{os.path.basename(instance.image.name)}"
+            gallery_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'gallery', gallery_filename)
+            if os.path.exists(gallery_path):
+                files_to_delete.append(gallery_path)
+
+        except Exception as e:
+            print(f"Error preparing main image cleanup: {e}")
+    
+    # Before image and its generated files
+    if instance.before_image:
+        try:
+            # Original before image
+            if os.path.exists(instance.before_image.path):
+                files_to_delete.append(instance.before_image.path)
+            
+            # Before image thumbnail
+            thumbnail_filename = f"thumb_{os.path.basename(instance.before_image.name)}"
+            thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'thumbnails', thumbnail_filename)
+            if os.path.exists(thumbnail_path):
+                files_to_delete.append(thumbnail_path)
+
+            # Before image gallery version
+            gallery_filename = f"gallery_{os.path.basename(instance.before_image.name)}"
+            gallery_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'before', 'gallery', gallery_filename)
+            if os.path.exists(gallery_path):
+                files_to_delete.append(gallery_path)
+
+        except Exception as e:
+            print(f"Error preparing before image cleanup: {e}")
+        
+    # After image and its generated files
+    if instance.after_image:
+        try:
+            # Original after image
+            if os.path.exists(instance.after_image.path):
+                files_to_delete.append(instance.after_image.path)
+            
+            # After image thumbnail
+            thumbnail_filename = f"thumb_{os.path.basename(instance.after_image.name)}"
+            thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'thumbnails', thumbnail_filename)
+            if os.path.exists(thumbnail_path):
+                files_to_delete.append(thumbnail_path)
+            
+            # After image gallery version
+            gallery_filename = f"gallery_{os.path.basename(instance.after_image.name)}"
+            gallery_path = os.path.join(settings.MEDIA_ROOT, 'portfolio', 'after', 'gallery', gallery_filename)
+            if os.path.exists(gallery_path):
+                files_to_delete.append(gallery_path)
+            
+        except Exception as e:
+            print(f"Error preparing after image cleanup: {e}")
+    
+    # Actually delete the files
+    deleted_count = 0
+    for file_path in files_to_delete:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                deleted_count += 1
+                print(f"Deleted file: {file_path}")
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
+            
+    print(f"Cleaned up {deleted_count} files")
 
     # Invalidate related caches
     invalidate_related_caches(instance)
