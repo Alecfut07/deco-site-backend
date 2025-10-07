@@ -35,6 +35,11 @@ class Service(models.Model):
     class Meta:
         ordering = ['display_order', 'name']
         verbose_name_plural = 'Services'
+        indexes = [
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['display_order']),
+            models.Index(fields=['name']),
+        ]
 
     def __str__(self):
         return self.name
@@ -101,6 +106,12 @@ class PortfolioItem(models.Model):
 
     class Meta:
         ordering = ['-upload_date']
+        indexes = [
+            models.Index(fields=['category', 'upload_date']),
+            models.Index(fields=['service', 'upload_date']),
+            models.Index(fields=['is_before_after', 'upload_date']),
+            models.Index(fields=['title']), # For search optimization
+        ]
 
     def __str__(self):
         return self.title

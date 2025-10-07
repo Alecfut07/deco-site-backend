@@ -8,6 +8,10 @@ class Category(models.Model):
     class Meta:
         ordering = ['display_order', 'name']
         verbose_name_plural = 'Categories'
+        indexes = [
+            models.Index(fields=['display_order']),
+            models.Index(fields=['name']),
+        ]
 
     def __str__(self):
         return self.name
