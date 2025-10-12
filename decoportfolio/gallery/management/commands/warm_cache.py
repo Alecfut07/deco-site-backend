@@ -47,7 +47,7 @@ class Command(BaseCommand):
             )
         )
     
-    def warm_portfolio_cache(self, request):
+    def warm_portfolio_cache(self):
         """Warm portfolio items cache"""
         self.stdout.write("Warming portfolio cache...")
 
@@ -70,7 +70,7 @@ class Command(BaseCommand):
         cache.set('portfolio_list_', cache_data, 300)
         self.stdout.write(f"Cached {len(items)} portfolio items")
 
-    def warm_categories_cache(self, request):
+    def warm_categories_cache(self):
         """Warm categories cache"""
         self.stdout.write("Warming categories cache...")
 
@@ -80,7 +80,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Cached {len(categories)} categories")
 
-    def warm_services_cache(self, request):
+    def warm_services_cache(self):
         """Warm services cache"""
         self.stdout.write("Warming services cache...")
 
@@ -90,7 +90,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Cached {len(services)} services")
 
-    def warm_business_cache(self, request):
+    def warm_business_cache(self):
         """Warm business info cache"""
         self.stdout.write("Warming business info cache...")
 
@@ -100,7 +100,7 @@ class Command(BaseCommand):
             cache.set('business_info_', serializer.data, 1800) # 30 minutes
             self.stdout.write("Cached business info")
     
-    def warm_search_caches(self, request):
+    def warm_search_caches(self):
         """Warm common search/filter caches"""
         self.stdout.write("Warming search/filter caches...")
 
