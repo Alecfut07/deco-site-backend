@@ -1,7 +1,6 @@
 import time
 from django.core.management.base import BaseCommand
 from django.core.cache import cache
-from django.test import RequestFactory
 from gallery.models import PortfolioItem, Category, Service, BusinessInfo
 from gallery.serializers import PortfolioItemSerializer, CategorySerializer, ServiceSerializer, BusinessInfoSerializer
 
@@ -24,24 +23,20 @@ class Command(BaseCommand):
 
         self.stdout.write("Starting cache warming...")
 
-        # Create a fake request for serializer context
-        factory = RequestFactory()
-        request = factory.get('/')
-
         # Warm portfolio items cache
-        self.warm_portfolio_cache(request)
+        self.warm_portfolio_cache()
 
         # Warm categories cache
-        self.warm_categories_cache(request)
+        self.warm_categories_cache()
 
         # Warm services cache
-        self.warm_services_cache(request)
+        self.warm_services_cache()
 
         # Warm business info cache
-        self.warm_business_cache(request)
+        self.warm_business_cache()
 
         # Warm search/filter caches
-        self.warm_search_caches(request)
+        self.warm_search_caches()
 
         end_time = time.time()
         duration = end_time - start_time
@@ -58,7 +53,7 @@ class Command(BaseCommand):
 
         # Main portfolio list
         items = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')[:50]
-        serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+        serializer = PortfolioItemSerializer(items, many=True, context={})
 
         cache_data = {
             'portfolio_items': serializer.data,
@@ -112,17 +107,22 @@ class Command(BaseCommand):
         # Common search terms
         common_searches = ['interior', 'exterior', 'painting', 'bathroom', 'kitchen']
 
+        cached_count = 0
         for term in common_searches:
             items = PortfolioItem.objects.filter(
                 title__icontains=term
             ).select_related('category', 'service')[:20]
 
-            if items:
-                serializer = PortfolioItemSerializer(items, many=True, context={'request': request})
+            if items.exists():
+                serializer = PortfolioItemSerializer(items, many=True, context={})
                 cache_key = f'portfolio_search_{term}_'
                 cache.set(cache_key, {
                     'portfolio_items': serializer.data,
                     'search_term': term,
-                    'total_results': len(items)
+                    'total_results': items.count()
                 }, 300)
+                cached_count += 1
                 self.stdout.write(f"Cached search for '{term}' ({len(items)} results)")
+        
+        if cached_count == 0:
+            self.stdout.write("No search results to cache")
