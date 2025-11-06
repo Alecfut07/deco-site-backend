@@ -163,3 +163,30 @@ class PortfolioImage(models.Model):
 
     def __str__(self):
         return f"{self.portfolio_item.title} - Image {self.id}"
+
+class PortfolioVideo(models.Model):
+    portfolio_item = models.ForeignKey(
+        PortfolioItem,
+        on_delete=models.CASCADE,
+        related_name='videos'
+    )
+    video = models.FileField(upload_to='portfolio/videos/')
+
+    # Thumbnail (auto-generated from video)
+    thumbnail = models.ImageField(
+        upload_to='portfolio/videos/thumbnails/',
+        blank=True,
+        null=True,
+        help_text="Auto-generated from video"
+    )
+
+    caption = models.CharField(max_length=200, blank=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', 'created_at']
+    
+    def __str__(self):
+        return f"{self.portfolio_item.title} - Video {self.id}"
+        
