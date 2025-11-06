@@ -23,9 +23,82 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ['id', 'name', 'category', 'price_range', 'category', 'is_active', 'display_order']
 
+class PortfolioImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    gallery_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioImage
+        fields = [
+            'id', 'image_url', 'thumbnail_url', 'gallery_image_url',
+            'caption', 'display_order', 'created_at'
+        ]
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            original_filename = os.path.basename(obj.image.name)
+            thumbnail_filename = f"thumb_{original_filename}"
+            thumbnail_path = f"/media/portfolio/images/thumbnails/{thumbnail_filename}"
+
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(thumbnail_path)
+            return thumbnail_path
+        return None
+
+    def get_gallery_image_url(self, obj):
+        if obj.image:
+            original_filename = os.path.basename(obj.image.name)
+            gallery_filename = f"gallery_{original_filename}"
+            gallery_path = f"/media/portfolio/images/gallery/{gallery_filename}"
+
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(gallery_path)
+            return gallery_path
+        return None
+
+class PortfolioVideoSerializer(serializers.ModelSerializer):
+    video_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioVideo
+        fields = [
+            'id', 'video_url', 'thumbnail_url',
+            'caption', 'display_order', 'created_at'
+        ]
+
+    def get_video_url(self, obj):
+        if obj.video:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.video.url)
+            return obj.video.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        return None
+
 class PortfolioItemSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     service = ServiceSerializer(read_only=True)
+    pictures = PortfolioImageSerializer(many=True, read_only=True, source='pictures')
+    videos = PortfolioVideoSerializer(many=True, read_only=True, source='videos')
     image_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     gallery_image_url = serializers.SerializerMethodField()
@@ -41,8 +114,10 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'category', 'service',
             'image_url', 'thumbnail_url', 'gallery_image_url',
-            'before_image_url', 'after_image_url', 'before_thumbnail_url', 'after_thumbnail_url',
-            'images', 'image_count', 'has_before_after', 'is_before_after', 'upload_date'
+            'before_image_url', 'after_image_url', 
+            'before_thumbnail_url', 'after_thumbnail_url',
+            'pictures', 'videos',
+            'has_before_after', 'is_before_after', 'upload_date'
         ]
 
     def get_image_url(self, obj):
@@ -128,74 +203,3 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
     def get_has_before_after(self, obj):
         return obj.has_before_after()
-
-class PortfolioImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-    thumbnail_url = serializers.SerializerMethodField()
-    gallery_image_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = PortfolioImage
-        fields = [
-            'id', 'image_url', 'thumbnail_url', 'gallery_image_url',
-            'caption', 'display_order', 'created_at'
-        ]
-
-    def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
-    
-    def get_thumbnail_url(self, obj):
-        if obj.thumbnail:
-            original_filename = os.path.basename(obj.image.name)
-            thumbnail_filename = f"thumb_{original_filename}"
-            thumbnail_path = f"/media/portfolio/images/thumbnails/{thumbnail_filename}"
-
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(thumbnail_path)
-            return thumbnail_path
-        return None
-
-    def get_gallery_image_url(self, obj):
-        if obj.image:
-            original_filename = os.path.basename(obj.image.name)
-            gallery_filename = f"gallery_{original_filename}"
-            gallery_path = f"/media/portfolio/images/gallery/{gallery_filename}"
-
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(gallery_path)
-            return gallery_path
-        return None
-
-class PortfolioVideoSerializer(serializers.ModelSerializer):
-    video_url = serializers.SerializerMethodField()
-    thumbnail_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = PortfolioVideo
-        fields = [
-            'id', 'video_url', 'thumbnail_url',
-            'caption', 'display_order', 'created_at'
-        ]
-
-    def get_video_url(self, obj):
-        if obj.video:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.video.url)
-            return obj.video.url
-        return None
-    
-    def get_thumbnail_url(self, obj):
-        if obj.thumbnail:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.thumbnail.url)
-            return obj.thumbnail.url
-        return None
