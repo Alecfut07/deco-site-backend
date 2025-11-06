@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import PortfolioItem, Category, Service, BusinessInfo
+from .models import PortfolioItem, Category, Service, BusinessInfo, PortfolioImage, PortfolioVideo
 
 @admin.register(BusinessInfo)
 class BusinessInfoAdmin(admin.ModelAdmin):
@@ -51,6 +51,17 @@ class ServiceAdmin(admin.ModelAdmin):
         }),
     )
 
+class PortfolioImageInline(admin.TabularInline):
+    model = PortfolioImage
+    extra = 1
+    fields = ('image', 'caption', 'display_order')
+    readonly_fields = ('thumbnail', 'gallery_image', 'created_at')
+
+class PortfolioVideoInline(admin.TabularInline):
+    model = PortfolioVideo
+    extra = 1
+    fields = ('video', 'caption', 'display_order')
+    readonly_fields = ('thumbnail', 'created_at')
 
 @admin.register(PortfolioItem)
 class PortfolioItemAdmin(admin.ModelAdmin):
