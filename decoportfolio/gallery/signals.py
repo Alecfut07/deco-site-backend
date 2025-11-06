@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.core.cache import cache
 from PIL import Image
-from .models import PortfolioItem, Category, Service, BusinessInfo
+from .models import PortfolioItem, Category, Service, BusinessInfo, PortfolioImage, PortfolioVideo
 
 def invalidate_related_caches(instance):
     """Smart cache invalidation for related data"""
@@ -37,6 +37,24 @@ def invalidate_related_caches(instance):
     for key in cache_keys_to_clear:
         cache.delete(key)
         print(f"Cleared cache key: {key}")
+
+@receiver(post_save, sender=PortfolioImage)
+def generate_portfolio_image_thumbnails(sender, instance, created, **kwargs):
+    """Generate thumbnails for portfolio images"""
+    if created and instance.image:
+        # Generate thumbnails using PIL (same logic as PortfolioItem)
+        # Use the same helper function from PortfolioItem signal
+        # ... (similar to generate_thumbnails_and_invalidate_cache function)
+        pass
+
+@receiver(post_save, sender=PortfolioVideo)
+def generate_video_thumbnail(sender, instance, created, **kwargs):
+    """Generate thumbnail from video"""
+    if created and instance.video:
+        # Use a video processing library (like moviepy, opencv-python, or ffmpeg-python)
+        # Extract a frame from the video and save as thumbnail
+        # ... (video thumbnail generation logic)
+        pass
 
 @receiver(post_save, sender=PortfolioItem)
 def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs):
