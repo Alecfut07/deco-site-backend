@@ -71,6 +71,11 @@ class PortfolioItemAdmin(admin.ModelAdmin):
     ordering = ['-upload_date']
     readonly_fields = ['upload_date']
 
+    inlines = [
+        PortfolioImageInline,
+        PortfolioVideoInline,
+    ]
+
     fieldsets = (
         ('Content', {
             'fields': ('title', 'description')
