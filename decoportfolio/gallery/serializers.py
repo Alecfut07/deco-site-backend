@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 import os
-from .models import PortfolioImage, PortfolioItem, Category, Service, BusinessInfo
+from .models import PortfolioImage, PortfolioItem, Category, PortfolioVideo, Service, BusinessInfo
 
 class BusinessInfoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -171,4 +171,31 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(gallery_path)
             return gallery_path
+        return None
+
+class PortfolioVideoSerializer(serializers.ModelSerializer):
+    video_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioVideo
+        fields = [
+            'id', 'video_url', 'thumbnail_url',
+            'caption', 'display_order', 'created_at'
+        ]
+
+    def get_video_url(self, obj):
+        if obj.video:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.video.url)
+            return obj.video.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
         return None
