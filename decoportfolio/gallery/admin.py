@@ -63,6 +63,20 @@ class PortfolioVideoInline(admin.TabularInline):
     fields = ('video', 'caption', 'display_order')
     readonly_fields = ('thumbnail', 'created_at')
 
+@admin.register(PortfolioImage)
+class PortfolioImageAdmin(admin.ModelAdmin):
+    list_display = ['portfolio_item', 'caption', 'display_order', 'created_at']
+    list_filter = ['portfolio_item']
+    search_fields = ['portfolio_item__title', 'caption']
+    ordering = ['display_order', 'created_at']
+
+@admin.register(PortfolioVideo)
+class PortfolioVideoAdmin(admin.ModelAdmin):
+    list_display = ['portfolio_item', 'caption', 'display_order', 'created_at']
+    list_filter = ['portfolio_item']
+    search_fields = ['portfolio_item__title', 'caption']
+    ordering = ['display_order', 'created_at']
+
 @admin.register(PortfolioItem)
 class PortfolioItemAdmin(admin.ModelAdmin):
     list_display = ['title', 'category', 'service', 'has_main_image', 'has_before_after', 'upload_date', 'image_preview']
