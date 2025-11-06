@@ -1,4 +1,6 @@
 import os
+import cv2
+import numpy as np
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
@@ -42,10 +44,72 @@ def invalidate_related_caches(instance):
 def generate_portfolio_image_thumbnails(sender, instance, created, **kwargs):
     """Generate thumbnails for portfolio images"""
     if created and instance.image:
-        # Generate thumbnails using PIL (same logic as PortfolioItem)
-        # Use the same helper function from PortfolioItem signal
-        # ... (similar to generate_thumbnails_and_invalidate_cache function)
-        pass
+        print(f"=== PROCESSING PORTFOLIO IMAGE: {instance.id} ===")
+        print(f"Portfolio Item: {instance.portfolio_item.title}")
+        print(f"Image: {instance.image.name}")
+
+        def generate_image_variants(image_field, base_dir, image_type):
+            """Helper function to generate thumbnail and gallery images"""
+            if not image_field:
+                return
+            
+            try:
+                # Check if image file exists on disk
+                if not os.path.exists(image_field.path):
+                    print(f"Image file not found on disk: {image_field.path}")
+                    return
+                
+                # Open the original image
+                img = Image.open(image_field.path)
+
+                # Get original format and determine output format
+                original_format = img.format
+                output_format = 'JPEG' if original_format in ['JPEG', 'JPG'] else 'PNG'
+
+                # Create thumbnail (300x300)
+                thumbnail_img = img.copy()
+                thumbnail_img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+
+                # Save thumbnail
+                thumbnail_dir = os.path.join(settings.MEDIA_ROOT, base_dir, 'thumbnails')
+                os.makedirs(thumbnail_dir, exist_ok=True)
+
+                thumbnail_filename = f"thumb_{os.path.basename(image_field.name)}"
+                thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
+
+                # Convert to RGB if saving as JPEG (JPEG doesn't support transparency)
+                if output_format == 'JPEG' and thumbnail_img.mode in ['RGBA', 'LA', 'P']:
+                    thumbnail_img = thumbnail_img.convert('RGB')
+                
+                thumbnail_img.save(thumbnail_path, output_format, quality=85)
+
+                # Create gallery image (800x600 max)
+                gallery_img = img.copy()
+                gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
+
+                gallery_dir = os.path.join(settings.MEDIA_ROOT, base_dir, 'gallery')
+                os.makedirs(gallery_dir, exist_ok=True)
+
+                gallery_filename = f"gallery_{os.path.basename(image_field.name)}"
+                gallery_path = os.path.join(gallery_dir, gallery_filename)
+
+                # Convert to RGB if saving as JPEG
+                if output_format == 'JPEG' and gallery_img.mode in ['RGBA', 'LA', 'P']:
+                    gallery_img = gallery_img.convert('RGB')
+
+                gallery_img.save(gallery_path, output_format, quality=90)
+                
+                print(f"Generated {image_type} thumbnail: {thumbnail_path}")
+                print(f"Generated {image_type} gallery image: {gallery_path}")
+            
+            except Exception as e:
+                print(f"Error generating {image_type} images: {e}")
+            
+        # Generate image variants
+        generate_image_variants(instance.image, 'portfolio/images', 'portfolio_image')
+
+        # Invalidate parent PortfolioItem cache
+        invalidate_related_caches(instance)
 
 @receiver(post_save, sender=PortfolioVideo)
 def generate_video_thumbnail(sender, instance, created, **kwargs):
