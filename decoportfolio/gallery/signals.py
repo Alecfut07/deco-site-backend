@@ -11,6 +11,16 @@ from .models import PortfolioItem, Category, Service, BusinessInfo, PortfolioIma
 def invalidate_related_caches(instance):
     """Smart cache invalidation for related data"""
     cache_keys_to_clear = []
+
+    # Handle PortfolioImage and PortfolioVideo instances
+    if isinstance(instance, (PortfolioImage, PortfolioVideo)):
+        # Get the parent PortfolioItem
+        portfolio_item = instance.portfolio_item
+        instance = portfolio_item  # Use portfolio_item for cache invalidation
+    
+    # Check if instance has required attributes (must be PortfolioItem)
+    if not hasattr(instance, 'category'):
+        return
     
     cache_keys_to_clear.extend([
         'portfolio_list_',
@@ -29,7 +39,7 @@ def invalidate_related_caches(instance):
     cache_keys_to_clear.append(f'portfolio_item_{instance.id}')
 
     # Clear category and service related caches
-    if hasattr(instance, 'category') and instance.category:
+    if instance.category:
         cache_keys_to_clear.extend([
             f'category_{instance.category.id}',
             f'service_category_{instance.category.id}_',
