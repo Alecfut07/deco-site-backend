@@ -115,10 +115,89 @@ def generate_portfolio_image_thumbnails(sender, instance, created, **kwargs):
 def generate_video_thumbnail(sender, instance, created, **kwargs):
     """Generate thumbnail from video"""
     if created and instance.video:
-        # Use a video processing library (like moviepy, opencv-python, or ffmpeg-python)
-        # Extract a frame from the video and save as thumbnail
-        # ... (video thumbnail generation logic)
-        pass
+        print(f"=== PROCESSING PORTFOLIO VIDEO: {instance.id} ===")
+        print(f"Portfolio Item: {instance.portfolio_item.title}")
+        print(f"Video: {instance.video.name}")
+
+        try:
+            # Check if video file exists on disk
+            if not os.path.exists(instance.video.path):
+                print(f"Video file not found on disk: {instance.video.path}")
+                return
+            
+            # Open video file with OpenCV
+            cap = cv2.VideoCapture(instance.video.path)
+
+            if not cap.isOpened():
+                print(f"Error opening video file: {instance.video.path}")
+                return
+            
+            # Get total number of frames
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            # Calculate frame position (use 1 second or 10% of video, whichever is smaller)
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30  # Default to 30 fps if not available
+            frame_position = min(int(fps), total_frames // 10) if total_frames > 0 else 0
+
+            # Set frame position
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_position)
+
+            # Read frame
+            ret, frame = cap.read()
+
+            if not ret or frame is None:
+                # If frame extraction failed, try middle of video
+                cap.set(cv2.CAP_PROP_POS_FRAMES, total_frames // 2 if total_frames > 0 else 0) 
+                ret, frame = cap.read()
+
+            cap.release()
+
+            if not ret or frame is None:
+                print(f"Error raeding frame from video: {instance.video.path}")
+                return
+            
+            # Convert BGR to RGB (OpenCV uses BGR, PIL uses RGB)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert to PIL Image
+            pil_image = Image.fromarray(frame_rgb)
+
+            # Resize to thumbnail size (300x300)
+            pil_image.thumbnail((300, 300), Image.Resampling.LANCZOS)
+
+            # Create thumbnail directory
+            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'portfolio/videos/thumbnails')
+            os.makedirs(thumbnail_dir, exist_ok=True)
+
+            # Generate thumbnail filename
+            video_basename = os.path.basename(instance.video.name)
+            video_name_without_ext = os.path.splitext(video_basename)[0]
+            thumbnail_filename = f"{video_name_without_ext}.jpg"
+            thumbnail_path = os.path.join(thumbnail_dir, thumbnail_filename)
+
+            # Convert to RGB if needed (for JPEG compatibility)
+            if pil_image.mode in ['RGBA', 'LA', 'P']:
+                pil_image = pil_image.convert('RGB')
+
+            # Save thumbnail
+            pil_image.save(thumbnail_path, 'JPEG', quality=85)
+
+            # Update the thumbnail field in the model
+            # We need to save the relative path from MEDIA_ROOT
+            thumbnail_relative_path = f"portfolio/videos/thumbnails/{thumbnail_filename}"
+            instance.thumbnail.name = thumbnail_relative_path
+            instance.save(update_fields=['thumbnail'])
+
+            print(f"Generated video thumbnail: {thumbnail_path}")
+            print(f"=== PORTFOLIO VIDEO PROCESSING COMPLETED ===\n")
+
+        except Exception as e:
+            print(f"Error generating video thumbnail: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # Invalidate parent PortfolioItem cache
+        invalidate_related_caches(instance)
 
 @receiver(post_save, sender=PortfolioItem)
 def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs):
