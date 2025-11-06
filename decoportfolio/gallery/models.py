@@ -125,3 +125,41 @@ class PortfolioItem(models.Model):
     def has_before_after(self):
         """Check if this portfolio item has before/after images"""
         return bool(self.before_image and self.after_image)
+
+class PortfolioImage(models.Model):
+    portfolio_item = models.ForeignKey(
+        PortfolioItem,
+        on_delete=models.CASCADE,
+        related_name='pictures'
+    )
+    image = models.ImageField(upload_to='portfolio/images/')
+
+    # Thumbnails (auto-generated)
+    thumbnail = ProcessedImageField(
+        upload_to='portfolio/images/thumbnails/',
+        processors = [ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 85},
+        blank=True,
+        null=True
+    )
+
+    # Gallery image (optimized for gallery display)
+    gallery_image = ProcessedImageField(
+        upload_to='portfolio/images/gallery/',
+        processors=[ResizeToFit(800, 600)],
+        format='WebP',
+        options={'quality': 90},
+        blank=True,
+        null=True
+    )
+
+    caption = models.CharField(max_length=200, blank=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['display_order', 'created_at']
+
+    def __str__(self):
+        return f"{self.portfolio_item.title} - Image {self.id}"
