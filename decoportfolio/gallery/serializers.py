@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 import os
-from .models import PortfolioItem, Category, Service, BusinessInfo
+from .models import PortfolioImage, PortfolioItem, Category, Service, BusinessInfo
 
 class BusinessInfoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -128,3 +128,47 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
     def get_has_before_after(self, obj):
         return obj.has_before_after()
+
+class PortfolioImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    gallery_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioImage
+        fields = [
+            'id', 'image_url', 'thumbnail_url', 'gallery_image_url',
+            'caption', 'display_order', 'created_at'
+        ]
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        if obj.thumbnail:
+            original_filename = os.path.basename(obj.image.name)
+            thumbnail_filename = f"thumb_{original_filename}"
+            thumbnail_path = f"/media/portfolio/images/thumbnails/{thumbnail_filename}"
+
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(thumbnail_path)
+            return thumbnail_path
+        return None
+
+    def get_gallery_image_url(self, obj):
+        if obj.image:
+            original_filename = os.path.basename(obj.image.name)
+            gallery_filename = f"gallery_{original_filename}"
+            gallery_path = f"/media/portfolio/images/gallery/{gallery_filename}"
+
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(gallery_path)
+            return gallery_path
+        return None
