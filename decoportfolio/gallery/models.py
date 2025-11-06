@@ -96,9 +96,6 @@ class PortfolioItem(models.Model):
         null=True
     )
 
-    # Multiple images (JSONField for image URLs)
-    images = models.JSONField(default=list, help_text="Additional image URLs (optional)")
-
     # Before/After flag
     is_before_after = models.BooleanField(default=False, help_text="Is this a before/after project?")
     
@@ -189,4 +186,3 @@ class PortfolioVideo(models.Model):
     
     def __str__(self):
         return f"{self.portfolio_item.title} - Video {self.id}"
-        
