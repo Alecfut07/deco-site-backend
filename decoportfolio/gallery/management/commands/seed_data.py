@@ -208,7 +208,6 @@ class Command(BaseCommand):
                 'description': 'Complete bathroom renovation with new shower, tiling, and plumbing work',
                 'category': bathrooms_cat,
                 'service': shower_service,
-                'images': [],  # Empty for now - will add images later
                 'is_before_after': True
             },
             {
@@ -216,7 +215,6 @@ class Command(BaseCommand):
                 'description': 'Kitchen renovation with new flooring, tiling, and painting',
                 'category': kitchens_cat,
                 'service': tiling_kitchens_service,
-                'images': [],  # Empty for now - will add images later
                 'is_before_after': True
             },
             {
@@ -224,7 +222,6 @@ class Command(BaseCommand):
                 'description': 'Professional interior painting services for living room',
                 'category': interior_cat,
                 'service': interior_painting_service,
-                'images': [],  # Empty for now - will add images later
                 'is_before_after': False
             },
             {
@@ -232,7 +229,6 @@ class Command(BaseCommand):
                 'description': 'Exterior house painting and restoration work',
                 'category': exterior_cat,
                 'service': exterior_painting_service,
-                'images': [],  # Empty for now - will add images later
                 'is_before_after': False
             }
         ]
