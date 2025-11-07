@@ -253,7 +253,10 @@ def generate_thumbnails_and_invalidate_cache(sender, instance, created, **kwargs
 
             thumbnail_img.save(thumbnail_path, output_format, quality=85)
 
-            # Create gallery image
+            # Create gallery image (800x600 max)
+            gallery_img = img.copy()
+            gallery_img.thumbnail((800, 600), Image.Resampling.LANCZOS)
+            
             gallery_dir = os.path.join(settings.MEDIA_ROOT, base_dir, 'gallery')
             os.makedirs(gallery_dir, exist_ok=True)
 
