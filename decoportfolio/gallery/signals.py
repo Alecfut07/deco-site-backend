@@ -462,6 +462,39 @@ def cleanup_portfolio_image(sender, instance, **kwargs):
 
     print("=== PORTFOLIO IMAGE DELETION COMPLETED ===\n")
 
+@receiver(post_delete, sender=PortfolioVideo)
+def cleanup_portfolio_video(sender, instance, **kwargs):
+    """Cleanup files and invalidate cache when PortfolioVideo is deleted"""
+    print(f"=== DELETING PORTFOLIO VIDEO: {instance.id} ===")
+
+    files_to_delete = []
+
+    # Delete original video
+    if instance.video and os.path.exists(instance.video.path):
+        files_to_delete.append(instance.video.path)
+    
+    # Delete thumbnail
+    if instance.thumbnail and os.path.exists(instance.thumbnail.path):
+        files_to_delete.append(instance.thumbnail.path)
+
+    # Actually delete the files
+    deleted_count = 0
+    for file_path in files_to_delete:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                deleted_count += 1
+                print(f"Deleted file: {file_path}")
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
+
+    print(f"Cleaned up {deleted_count} files")
+
+    # Invalidate parent PortfolioItem cache
+    invalidate_related_caches(instance)
+
+    print("=== PORTFOLIO VIDEO DELETION COMPLETED ===\n")
+
 @receiver(post_save, sender=Category)
 def invalidate_category_cache(sender, instance, **kwargs):
     """Invalidate cache when category is updated"""
