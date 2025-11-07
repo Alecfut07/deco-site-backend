@@ -114,9 +114,9 @@ class PortfolioItem(models.Model):
         return self.title
 
     def get_primary_image(self):
-        """Get the first image from the images list"""
-        if self.images:
-            return self.images[0]
+        """Get the main image"""
+        if self.image:
+            return self.image.url
         return None
     
     def has_before_after(self):
