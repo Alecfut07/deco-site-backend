@@ -363,6 +363,40 @@ def cleanup_and_invalidate_cache(sender, instance, **kwargs):
         except Exception as e:
             print(f"Error preparing after image cleanup: {e}")
     
+    # Delete all related PortfolioImage files
+    try:
+        for portfolio_image in instance.pictures.all():
+            # Delete original image
+            if portfolio_image.image and os.path.exists(portfolio_image.image.path):
+                files_to_delete.append(portfolio_image.image.path)
+
+            # Delete thumbnail
+            thumbnail_filename = f"thumb_{os.path.basename(portfolio_image.image.name)}"
+            thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'portfolio/images/thumbnails', thumbnail_filename)
+            if os.path.exists(thumbnail_path):
+                files_to_delete.append(thumbnail_path)
+            
+            # Delete gallery image
+            gallery_filename = f"gallery_{os.path.basename(portfolio_image.image.name)}"
+            gallery_path = os.path.join(settings.MEDIA_ROOT, 'portfolio/images/gallery', gallery_filename)
+            if os.path.exists(gallery_path):
+                files_to_delete.append(gallery_path)
+    except Exception as e:
+        print(f"Error preparing PortfolioImage cleanup: {e}")
+    
+    # Delete all related PortfolioVideo Files
+    try:
+        for portfolio_video in instance.videos.all():
+            # Delete original video
+            if portfolio_video.video and os.path.exists(portfolio_video.video.path):
+                files_to_delete.append(portfolio_video.video.path)
+
+            # Delete thumbnail
+            if portfolio_video.thumbnail and os.path.exists(portfolio_video.thumbnail.path):
+                files_to_delete.append(portfolio_video.thumbnail.path)
+    except Exception as e:
+        print(f"Error preparing PortfolioVideo cleanup: {e}")
+    
     # Actually delete the files
     deleted_count = 0
     for file_path in files_to_delete:
