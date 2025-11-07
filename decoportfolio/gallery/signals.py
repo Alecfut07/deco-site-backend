@@ -415,6 +415,53 @@ def cleanup_and_invalidate_cache(sender, instance, **kwargs):
 
     print("=== DELETION AND CACHE INVALIDATION COMPLETED ===\n")
 
+@receiver(post_delete, sender=PortfolioImage)
+def cleanup_portfolio_image(sender, instance, **kwargs):
+    """Cleanup files and invalidate cache when PortfolioImage is deleted"""
+    print(f"=== DELETING PORTFOLIO IMAGE: {instance.id} ===")
+
+    files_to_delete = []
+
+    # Delete original image
+    if instance.image and os.path.exists(instance.image.path):
+        files_to_delete.append(instance.image.path)
+
+    # Delete thumbnail
+    try:
+        thumbnail_filename = f"thumb_{os.path.basename(instance.image.name)}"
+        thumbnail_path = os.path.join(settings.MEDIA_ROOT, 'portfolio/images/thumbnails', thumbnail_filename)
+        if os.path.exists(thumbnail_path):
+            files_to_delete.append(thumbnail_path)
+    except Exception as e:
+        print(f"Error preparing thumbnail cleanup: {e}")
+    
+    # Delete gallery image
+    try:
+        gallery_filename = f"gallery_{os.path.basename(instance.image.name)}"
+        gallery_path = os.path.join(settings.MEDIA_ROOT, 'portfolio/images/gallery', gallery_filename)
+        if os.path.exists(gallery_path):
+            files_to_delete.append(gallery_path)
+    except Exception as e:
+        print(f"Error preparing gallery image cleanup: {e}")
+
+    # Actually delete the files
+    deleted_count = 0
+    for file_path in files_to_delete:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                deleted_count += 1
+                print(f"Deleted file: {file_path}")
+        except Exception as e:
+            print(f"Error deleting file {file_path}: {e}")
+    
+    print(f"Cleaned up {deleted_count} files")
+
+    # Invalidate parent PortfolioItem cache
+    invalidate_related_caches(instance)
+
+    print("=== PORTFOLIO IMAGE DELETION COMPLETED ===\n")
+
 @receiver(post_save, sender=Category)
 def invalidate_category_cache(sender, instance, **kwargs):
     """Invalidate cache when category is updated"""
