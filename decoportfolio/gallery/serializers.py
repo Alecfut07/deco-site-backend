@@ -118,12 +118,24 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioItem
         fields = [
-            'id', 'title', 'description', 'category', 'service',
-            'image_url', 'thumbnail_url', 'gallery_image_url',
-            'before_image_url', 'after_image_url', 
-            'before_thumbnail_url', 'after_thumbnail_url',
-            'pictures', 'videos',
-            'has_before_after', 'is_before_after', 'upload_date'
+            'id', 
+            'title', 
+            'description', 
+            'category', 
+            'service',
+            'image_url', 
+            'thumbnail_url', 
+            'gallery_image_url',
+            'before_image_url', 
+            'after_image_url', 
+            'before_thumbnail_url', 
+            'after_thumbnail_url',
+            'pictures', 
+            'videos',
+            'image_count',
+            'has_before_after', 
+            'is_before_after', 
+            'upload_date',
         ]
 
     def get_image_url(self, obj):
@@ -205,7 +217,7 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
         return None
         
     def get_image_count(self, obj):
-        return len(obj.images) if obj.images else 0
+        return obj.pictures.count()
 
     def get_has_before_after(self, obj):
-        return obj.has_before_after()
+        return bool(obj.before_image and obj.after_image)
