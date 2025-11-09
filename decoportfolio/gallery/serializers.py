@@ -1,7 +1,14 @@
 from rest_framework import serializers
 from django.conf import settings
 import os
-from .models import PortfolioItem, Category, Service, BusinessInfo, PortfolioImage, PortfolioVideo
+from .models import (
+    PortfolioItem,
+    Category,
+    Service,
+    BusinessInfo,
+    PortfolioImage,
+    PortfolioVideo,
+)
 
 class BusinessInfoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,28 +38,30 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioImage
         fields = [
-            'id', 'image_url', 'thumbnail_url', 'gallery_image_url',
-            'caption', 'display_order', 'created_at'
+            'id', 
+            'image_url', 
+            'thumbnail_url', 
+            'gallery_image_url',
+            'caption', 
+            'display_order', 
+            'created_at',
         ]
+
+    def _build_url(self, request, path):
+        if request:
+            return request.build_absolute_uri(path)
+        return path
 
     def get_image_url(self, obj):
         if obj.image:
             request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+            return self._build_url(request, obj.image.url)
         return None
     
     def get_thumbnail_url(self, obj):
         if obj.thumbnail:
-            original_filename = os.path.basename(obj.image.name)
-            thumbnail_filename = f"thumb_{original_filename}"
-            thumbnail_path = f"/media/portfolio/images/thumbnails/{thumbnail_filename}"
-
             request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(thumbnail_path)
-            return thumbnail_path
+            return self._build_url(request, obj.thumbnail.url)
         return None
 
     def get_gallery_image_url(self, obj):
