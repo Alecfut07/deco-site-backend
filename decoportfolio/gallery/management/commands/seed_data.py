@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
             # Create example portfolio items
             # There are just examples
-            self.create_portfolio_items()
+            # self.create_portfolio_items()
 
         self.stdout.write(
             self.style.SUCCESS('Successfully seeded database!')

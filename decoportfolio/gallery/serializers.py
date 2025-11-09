@@ -28,7 +28,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ['id', 'name', 'category', 'price_range', 'category', 'is_active', 'display_order']
+        fields = ['id', 'name', 'category', 'price_range', 'is_active', 'display_order']
 
 class PortfolioImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
@@ -65,7 +65,7 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
         return None
 
     def get_gallery_image_url(self, obj):
-        if obj.image:
+        if obj.gallery_image:
             request = self.context.get('request')
             return self._build_url(request, obj.gallery_image.url)
 

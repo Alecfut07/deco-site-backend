@@ -102,10 +102,6 @@ class PortfolioItemAdmin(admin.ModelAdmin):
             'fields': ('before_image', 'after_image'),
             'description': 'Upload before and after images (optional). Thumbnails will be generated automatically.'
         }),
-        ('Additional Images', {
-            'fields': ('images',),
-            'description': 'Additional image URLs (optional). Use this for extra project photos.'
-        }),
         ('Project Details', {
             'fields': ('is_before_after',)
         }),
