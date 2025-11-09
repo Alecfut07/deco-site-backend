@@ -66,15 +66,8 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
 
     def get_gallery_image_url(self, obj):
         if obj.image:
-            original_filename = os.path.basename(obj.image.name)
-            gallery_filename = f"gallery_{original_filename}"
-            gallery_path = f"/media/portfolio/images/gallery/{gallery_filename}"
-
             request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(gallery_path)
-            return gallery_path
-        return None
+            return self._build_url(request, obj.gallery_image.url)
 
 class PortfolioVideoSerializer(serializers.ModelSerializer):
     video_url = serializers.SerializerMethodField()
@@ -83,8 +76,12 @@ class PortfolioVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioVideo
         fields = [
-            'id', 'video_url', 'thumbnail_url',
-            'caption', 'display_order', 'created_at'
+            'id', 
+            'video_url', 
+            'thumbnail_url',
+            'caption', 
+            'display_order', 
+            'created_at',
         ]
 
     def get_video_url(self, obj):
