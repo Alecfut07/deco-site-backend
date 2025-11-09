@@ -57,7 +57,13 @@ class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
     - Combined search and filtering
     - Pagination support
     """
-    queryset = PortfolioItem.objects.select_related('category', 'service').order_by('-upload_date')
+    queryset = PortfolioItem.objects.select_related(
+        'category', 
+        'service'
+    ).prefetch_related(
+        'pictures',
+        'videos'
+    )
     serializer_class = PortfolioItemSerializer
     default_page = 1
     default_page_size = 20
