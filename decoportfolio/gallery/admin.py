@@ -54,14 +54,14 @@ class ServiceAdmin(admin.ModelAdmin):
 class PortfolioImageInline(admin.TabularInline):
     model = PortfolioImage
     extra = 1
-    fields = ('image', 'caption', 'display_order')
-    readonly_fields = ('thumbnail', 'gallery_image', 'created_at')
+    fields = ('image', 'caption', 'display_order', 'created_at')
+    readonly_fields = ('created_at')
 
 class PortfolioVideoInline(admin.TabularInline):
     model = PortfolioVideo
     extra = 1
-    fields = ('video', 'caption', 'display_order')
-    readonly_fields = ('thumbnail', 'created_at')
+    fields = ('video', 'caption', 'display_order', 'created_at')
+    readonly_fields = ('created_at')
 
 @admin.register(PortfolioImage)
 class PortfolioImageAdmin(admin.ModelAdmin):
