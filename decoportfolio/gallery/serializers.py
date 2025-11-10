@@ -103,8 +103,8 @@ class PortfolioVideoSerializer(serializers.ModelSerializer):
 class PortfolioItemSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     service = ServiceSerializer(read_only=True)
-    pictures = PortfolioImageSerializer(many=True, read_only=True, source='pictures')
-    videos = PortfolioVideoSerializer(many=True, read_only=True, source='videos')
+    pictures = PortfolioImageSerializer(many=True, read_only=True)
+    videos = PortfolioVideoSerializer(many=True, read_only=True)
     image_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     gallery_image_url = serializers.SerializerMethodField()
