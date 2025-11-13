@@ -38,7 +38,9 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioImage
         fields = [
-            'id', 
+            'id',
+            'portfolio_item',
+            'image',
             'image_url', 
             'thumbnail_url', 
             'gallery_image_url',
@@ -46,6 +48,18 @@ class PortfolioImageSerializer(serializers.ModelSerializer):
             'display_order', 
             'created_at',
         ]
+        read_only_fields = [
+            'id',
+            'image_url',
+            'thumbnail_url',
+            'gallery_image_url',
+            'created_at',
+        ]
+        # Prevent image from being included in the API response
+        # Your frontend will handle the image display (image_url, thumbnail_url, etc).
+        extra_kwargs = {
+            'image': {'write_only': True},
+        }
 
     def _build_url(self, request, path):
         if request:
@@ -76,13 +90,26 @@ class PortfolioVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PortfolioVideo
         fields = [
-            'id', 
+            'id',
+            'portfolio_item',
+            'video',
             'video_url', 
             'thumbnail_url',
             'caption', 
             'display_order', 
             'created_at',
         ]
+        read_only_fields = [
+            'id',
+            'video_url',
+            'thumbnail_url',
+            'created_at',
+        ]
+        # Prevent video from being included in the API response
+        # Your frontend will handle the video display (video_url, etc).
+        extra_kwargs = {
+            'video': {'write_only': True},
+        }
 
     def get_video_url(self, obj):
         if obj.video:
@@ -115,6 +142,19 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
     image_count = serializers.SerializerMethodField()
     has_before_after = serializers.SerializerMethodField()
 
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True,
+        required=False,
+    )
+    service_id = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(),
+        source='service',
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = PortfolioItem
         fields = [
@@ -123,9 +163,14 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
             'description', 
             'category', 
             'service',
+            'category_id',
+            'service_id',
+            'image',
             'image_url', 
             'thumbnail_url', 
             'gallery_image_url',
+            'before_image',
+            'after_image',
             'before_image_url', 
             'after_image_url', 
             'before_thumbnail_url', 
@@ -135,6 +180,21 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
             'image_count',
             'has_before_after', 
             'is_before_after', 
+            'upload_date',
+        ]
+        read_only_fields = [
+            'id',
+            'image_url',
+            'thumbnail_url',
+            'gallery_image_url',
+            'before_image_url',
+            'after_image_url',
+            'before_thumbnail_url',
+            'after_thumbnail_url',
+            'pictures',
+            'videos',
+            'image_count',
+            'has_before_after',
             'upload_date',
         ]
 
