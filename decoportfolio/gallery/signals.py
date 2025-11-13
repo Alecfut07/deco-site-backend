@@ -5,14 +5,15 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
 from django.core.cache import cache
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from PIL import Image
 from .models import PortfolioItem, Category, Service, BusinessInfo, PortfolioImage, PortfolioVideo
 
-def ensure_family_group_exists():
+def ensure_family_group_exists(sender, **kwargs):
     group, created = Group.objects.get_or_create(name='Family')
     # Optionally assign specific permissions
-    # e.g. group.permissions.add(Permission.objects.get(codename='change_portfolioitem'))
+    # if created:
+    #     group.permissions.add(...)
 
 def invalidate_related_caches(instance):
     """Smart cache invalidation for related data"""
