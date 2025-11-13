@@ -1,6 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .viewsets import PortfolioItemViewSet, CategoryViewSet, ServiceViewSet, BusinessInfoViewSet
+from .views.admin import PortfolioItemAdminViewSet
+from .views.auth import FamilyLoginView, FamilyLogoutView
 
 # Create a router and register our viewsets
 router = DefaultRouter()
@@ -9,11 +11,21 @@ router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'services', ServiceViewSet, basename='service')
 router.register(r'business-info', BusinessInfoViewSet, basename='businessinfo')
 
+# Add the Family-only endpoints
+router.register(r'admin/portfolio-items', PortfolioItemAdminViewSet, basename='admin-portfolioitem')
+# router.register(r'admin/portfolio-images', PortfolioImageAdminViewSet, basename='admin-portfolioimage')
+# router.register(r'admin/portfolio-videos', PortfolioVideoAdminViewSet, basename='admin-portfoliovideo')
+# router.register(r'admin/categories', CategoryAdminViewSet, basename='admin-category')
+# router.register(r'admin/services', ServiceAdminViewSet, basename='admin-service')
+# router.register(r'admin/business-info', BusinessInfoAdminViewSet, basename='admin-businessinfo')
+
 app_name = 'gallery'
 
 urlpatterns = [
     # Include the router URLs
     path('api/', include(router.urls)),
+    path('api/auth/login/', FamilyLoginView.as_view(), name='family-login'),
+    path('api/auth/logout/', FamilyLogoutView.as_view(), name='family-logout'),
 
     # Keep your existing endpoints for backward compatibility
     path('api/gallery/', PortfolioItemViewSet.as_view({'get': 'list'}), name='portfolio_list'),

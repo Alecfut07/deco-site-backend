@@ -9,6 +9,7 @@ class FamilyLoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+        
         user = authenticate(request, username=username, password=password)
         if user is not None:
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
