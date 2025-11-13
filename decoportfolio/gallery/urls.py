@@ -1,7 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .viewsets import PortfolioItemViewSet, CategoryViewSet, ServiceViewSet, BusinessInfoViewSet
-from .views.admin import PortfolioItemAdminViewSet
+from .views.admin import (
+    PortfolioItemAdminViewSet,
+    PortfolioImageAdminViewSet,
+    PortfolioVideoAdminViewSet,
+    CategoryAdminViewSet,
+    ServiceAdminViewSet,
+    BusinessInfoAdminViewSet,
+)
 from .views.auth import FamilyLoginView, FamilyLogoutView
 
 # Create a router and register our viewsets
@@ -13,11 +20,11 @@ router.register(r'business-info', BusinessInfoViewSet, basename='businessinfo')
 
 # Add the Family-only endpoints
 router.register(r'admin/portfolio-items', PortfolioItemAdminViewSet, basename='admin-portfolioitem')
-# router.register(r'admin/portfolio-images', PortfolioImageAdminViewSet, basename='admin-portfolioimage')
-# router.register(r'admin/portfolio-videos', PortfolioVideoAdminViewSet, basename='admin-portfoliovideo')
-# router.register(r'admin/categories', CategoryAdminViewSet, basename='admin-category')
-# router.register(r'admin/services', ServiceAdminViewSet, basename='admin-service')
-# router.register(r'admin/business-info', BusinessInfoAdminViewSet, basename='admin-businessinfo')
+router.register(r'admin/portfolio-images', PortfolioImageAdminViewSet, basename='admin-portfolioimage')
+router.register(r'admin/portfolio-videos', PortfolioVideoAdminViewSet, basename='admin-portfoliovideo')
+router.register(r'admin/categories', CategoryAdminViewSet, basename='admin-category')
+router.register(r'admin/services', ServiceAdminViewSet, basename='admin-service')
+router.register(r'admin/business-info', BusinessInfoAdminViewSet, basename='admin-businessinfo')
 
 app_name = 'gallery'
 
