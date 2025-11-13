@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModalViewSet
+from rest_framework.viewsets import ModelViewSet
 from gallery.models import (
     PortfolioItem,
     PortfolioImage,
@@ -17,32 +17,32 @@ from gallery.serializers import (
 )
 from gallery.permissions import IsFamilyMember
 
-class PortfolioItemAdminViewSet(ModalViewSet):
+class PortfolioItemAdminViewSet(ModelViewSet):
     queryset = PortfolioItem.objects.all()
     serializer_class = PortfolioItemSerializer
     permission_classes = [IsFamilyMember]
 
-class PortfolioImageAdminViewSet(ModalViewSet):
+class PortfolioImageAdminViewSet(ModelViewSet):
     queryset = PortfolioImage.objects.select_related("portfolio_item")
     serializer_class = PortfolioImageSerializer
     permission_classes = [IsFamilyMember]
 
-class PortfolioVideoAdminViewSet(ModalViewSet):
+class PortfolioVideoAdminViewSet(ModelViewSet):
     queryset = PortfolioVideo.objects.select_related("portfolio_item")
     serializer_class = PortfolioVideoSerializer
     permission_classes = [IsFamilyMember]
 
-class CategoryAdminViewSet(ModalViewSet):
+class CategoryAdminViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsFamilyMember]
 
-class ServiceAdminViewSet(ModalViewSet):
+class ServiceAdminViewSet(ModelViewSet):
     queryset = Service.objects.select_related("category")
     serializer_class = ServiceSerializer
     permission_classes = [IsFamilyMember]
 
-class BusinessInfoAdminViewSet(ModalViewSet):
+class BusinessInfoAdminViewSet(ModelViewSet):
     queryset = BusinessInfo.objects.all()
     serializer_class = BusinessInfoSerializer
     permission_classes = [IsFamilyMember]
