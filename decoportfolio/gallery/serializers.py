@@ -10,6 +10,10 @@ from .models import (
     PortfolioVideo,
 )
 
+class FamilyLoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True, style={'input_type': 'passowrd'})
+
 class BusinessInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessInfo
