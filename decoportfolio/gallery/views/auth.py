@@ -7,6 +7,7 @@ from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework import status, permissions
 from gallery.serializers import FamilyLoginSerializer
 
+
 class FamilyLoginView(GenericAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = FamilyLoginSerializer
@@ -16,23 +17,45 @@ class FamilyLoginView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         username = serializer.validated_data["username"]
         password = serializer.validated_data["password"]
         user = authenticate(request, username=username, password=password)
 
         if user is None:
-            return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if not (user.is_superuser or user.groups.filter(name="Family").exists()):
-            return Response({"detail": "Access restricted to family members."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Access restricted to family members."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         login(request, user)
         return Response({"detail": "Login successful."})
-    
+
+
 class FamilyLogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         logout(request)
         return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
+
+
+class UserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response(
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        )
