@@ -1,4 +1,5 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
@@ -33,20 +34,39 @@ class FamilyLoginView(GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        login(request, user)
-        return Response({"detail": "Login successful."})
+        # Get or create token for the user (Token Authentication)
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {
+                "detail": "Login successful.",
+                "token": token.key,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                },
+            }
+        )
 
 
 class FamilyLogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]  # Require token authentication
 
     def post(self, request):
-        logout(request)
+        # Delete the token to logout (Token Authentication)
+        # This doesn't affect Django admin session at all
+        try:
+            request.user.auth_token.delete()
+        except:
+            pass  # Token might not exist
+
         return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
 
 
 class UserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get(self, request):
         user = request.user
