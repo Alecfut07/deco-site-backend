@@ -39,6 +39,79 @@ class FamilyMemberManager(BaseUserManager):
         return self.create_user(username, email, password, **extra_fields)
 
 
+class FamilyMember(AbstractBaseUser, PermissionsMixin):
+    """
+    Custom user model for frontend family members
+    Completely separate from Django Admin users.
+    """
+
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+
+    # Status fields
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(
+        default=False, help_text="Can access admin dashboard from frontend"
+    )
+    date_joined = models.DateTimeField(default=timezone.now)
+    last_login = models.DateTimeField(null=True, blank=True)
+
+    objects = FamilyMemberManager()
+
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
+
+    class Meta:
+        verbose_name = "Family Member"
+        verbose_name_plural = "Family Members"
+        # Add permissions for all models
+        permissions = [
+            # Portfolio Item Permissions
+            ("view_portfolioitem", "Can view portfolio items"),
+            ("add_portfolioitem", "Can add portfolio items"),
+            ("change_portfolioitem", "Can change portfolio items"),
+            ("delete_portfolioitem", "Can delete portfolio items"),
+            # Porfolio Image Permissions
+            ("view_portfolioimage", "Can view portfolio images"),
+            ("add_portfolioimage", "Can add portfolio images"),
+            ("change_portfolioimage", "Can change portfolio images"),
+            ("delete_portfolioimage", "Can delete portfolio images"),
+            # Portfolio Video Permissions
+            ("view_portfoliovideo", "Can view portfolio videos"),
+            ("add_portfoliovideo", "Can add portfolio videos"),
+            ("change_portfoliovideo", "Can change portfolio videos"),
+            ("delete_portfoliovideo", "Can delete portfolio videos"),
+            # Category Permissions
+            ("view_category", "Can view categories"),
+            ("add_category", "Can add categories"),
+            ("change_category", "Can change categories"),
+            ("delete_category", "Can delete categories"),
+            # Service Permissions
+            ("view_service", "Can view services"),
+            ("add_service", "Can add services"),
+            ("change_service", "Can change services"),
+            ("delete_service", "Can delete services"),
+            # Business Info Permissions
+            ("view_businessinfo", "Can view business info"),
+            ("add_businessinfo", "Can add business info"),
+            ("change_businessinfo", "Can change business info"),
+            ("delete_businessinfo", "Can delete business info"),
+        ]
+
+    def __str__(self):
+        return self.username
+
+    def get_full_name(self):
+        """Return the full name"""
+        return f"{self.first_name} {self.last_name}".strip() or self.username
+
+    def get_short_name(self):
+        """Return the short name"""
+        return self.first_name or self.username
+
+
 class BusinessInfo(models.Model):
     company_name = models.CharField(max_length=200)
     tagline = models.CharField(max_length=300, blank=True)
