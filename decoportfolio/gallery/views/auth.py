@@ -46,16 +46,23 @@ class FamilyLoginView(GenericAPIView):
 
         username = serializer.validated_data["username"]
         password = serializer.validated_data["password"]
-        user = authenticate(request, username=username, password=password)
+
+        # Authenticate using FamilyMember model
+        try:
+            user = FamilyMember.objects.get(username=username)
+            if not user.check_password(password):
+                user = None
+        except FamilyMember.DoesNotExist:
+            user = None
 
         if user is None:
             return Response(
                 {"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        if not (user.is_superuser or user.groups.filter(name="Family").exists()):
+        if not user.is_active:
             return Response(
-                {"detail": "Access restricted to family members."},
+                {"detail": "Account is inactive."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -70,17 +77,19 @@ class FamilyLoginView(GenericAPIView):
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
                 },
             }
         )
 
 
 class FamilyLogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]  # Require token authentication
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [FamilyMemberTokenAuthentication]
 
     def post(self, request):
-        # Delete the token to logout (Token Authentication)
-        # This doesn't affect Django admin session at all
+        # Delete the token to logout
         try:
             request.user.auth_token.delete()
         except:
@@ -91,7 +100,7 @@ class FamilyLogoutView(APIView):
 
 class UserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [FamilyMemberTokenAuthentication]
 
     def get(self, request):
         user = request.user
