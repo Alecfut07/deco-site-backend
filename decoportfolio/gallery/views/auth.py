@@ -6,8 +6,32 @@ from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
-from rest_framework import status, permissions
+from rest_framework import status, permissions, exceptions
+from gallery.models import FamilyMember
 from gallery.serializers import FamilyLoginSerializer
+
+
+class FamilyMemberTokenAuthentication(TokenAuthentication):
+    """
+    Custom token authentication that only works with FamilyMember users.
+    Django Admin users won't be authenticated by this.
+    """
+
+    def authenticate_credentials(self, key):
+        model = self.get_model()
+        try:
+            token = model.objects.select_related("user").get(key=key)
+        except model.DoesNotExist:
+            raise exceptions.AuthenticationFailed("Invalid token.")
+
+        if not token.user.is_active:
+            raise exceptions.AuthenticationFailed("User inactive or deleted.")
+
+        # Only allow FamilyMember users
+        if not isinstance(token.user, FamilyMember):
+            raise exceptions.AuthenticationFailed("Invalid user type.")
+
+        return (token.user, token)
 
 
 class FamilyLoginView(GenericAPIView):
