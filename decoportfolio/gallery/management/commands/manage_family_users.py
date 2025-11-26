@@ -46,7 +46,7 @@ class Command(BaseCommand):
                 user = User.objects.get(username=username)
                 family_group.user_set.add(user)
                 self.stdout.write(
-                    self.style.SUCCESS(f"Successfuly added {username} to Family group")
+                    self.style.SUCCESS(f"Successfully added {username} to Family group")
                 )
             except User.DoesNotExist:
                 self.stdout.write(self.style.ERROR(f"User {username} does not exist"))
