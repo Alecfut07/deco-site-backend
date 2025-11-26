@@ -1,17 +1,16 @@
 from rest_framework.permissions import BasePermission
+from gallery.models import FamilyMember
 
 
 class IsFamilyMember(BasePermission):
     """
-    Allow access only to users who belong to the 'Family' group.
-    Superusers are NOT automatically granted access.
+    Allow access only to authenticated FamilyMembers users.
+    This is completely separate from Django Admin users.
     """
 
     def has_permission(self, request, view):
         user = request.user
         if not user.is_authenticated:
             return False
-        # Remove the superuser check if you want to require Family group membership
-        # if user.is_superuser:
-        #     return True
-        return user.groups.filter(name="Family").exists()
+        # Check if user is a FamilyMember instance
+        return isinstance(user, FamilyMember) and user.is_active
