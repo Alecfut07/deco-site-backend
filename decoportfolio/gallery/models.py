@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -5,8 +6,10 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill, ResizeToFit, ResizeToCover
+from .models import FamilyMember
 from category.models import Category
 
 
@@ -128,6 +131,38 @@ class FamilyMember(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         """Return the short name"""
         return self.first_name or self.username
+
+
+class FamilyMemberToken(models.Model):
+    """
+    Custom token model for FamilyMember authentication.
+    Separate from Django's Token model which is for User model.
+    """
+
+    key = models.CharField(max_length=40, primary_key=True)
+    user = models.OneToOneField(
+        FamilyMember,
+        related_name="auth_token",
+        on_delete=models.CASCADE,
+        verbose_name="FamilyMember",
+    )
+    created = models.DateTimeField(auto_now_add=True, verbose_name="Created")
+
+    class Meta:
+        verbose_name = "Family Member Token"
+        verbose_name_plural = "Family Member Tokens"
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_key(cls):
+        return get_random_string(length=40)
+
+    def __str__(self):
+        return self.key
 
 
 class BusinessInfo(models.Model):
