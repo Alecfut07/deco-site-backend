@@ -21,10 +21,23 @@ class FamilyMemberTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
-        if not auth_header.startswith(self.keyword + " "):
+        # Also check for lowercase 'authorization' header (some clients send it lowercase)
+        if not auth_header:
+            auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+
+        if not auth_header:
             return None
 
-        token_key = auth_header[len(self.keyword + " ") :].strip()
+        # Handle both "Token <key>" and "Bearer <key>" formats
+        parts = auth_header.split()
+        if len(parts) != 2:
+            return None
+
+        auth_type, token_key = parts
+
+        # Accept both "Token" and "Bearer" keywords
+        if auth_type.lower() not in (self.keyword.lower(), "bearer"):
+            return None
 
         if not token_key:
             return None
