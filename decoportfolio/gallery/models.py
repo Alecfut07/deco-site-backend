@@ -58,6 +58,24 @@ class FamilyMember(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
 
+    # Override groups and user_permissions to avoid clash with auth.user
+    groups = models.ManyToManyField(
+        "auth.Group",
+        verbose_name="groups",
+        blank=True,
+        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+        related_name="family_member_set",
+        related_query_name="family_member",
+    )
+    user_permissions = models.ManyToManyField(
+        "auth.Permission",
+        verbose_name="user permissions",
+        blank=True,
+        help_text="Specific permissions for this user.",
+        related_name="family_member_set",
+        related_query_name="family_member",
+    )
+
     objects = FamilyMemberManager()
 
     USERNAME_FIELD = "username"
