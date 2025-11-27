@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from .models import (
     FamilyMember,
+    FamilyMemberToken,
     PortfolioItem,
     Category,
     Service,
@@ -10,41 +11,6 @@ from .models import (
     PortfolioImage,
     PortfolioVideo,
 )
-
-
-@admin.register(FamilyMember)
-class FamilyMemberAdmin(BaseUserAdmin):
-    """Admin interface for FamilyMember (separate from Django User)"""
-
-    list_display = [
-        "username",
-        "email",
-        "first_name",
-        "last_name",
-        "is_active",
-        "is_staff",
-        "date_joined",
-    ]
-    list_filter = ["is_active", "is_staff", "date_joined"]
-    search_fields = ["username", "email", "first_name", "last_name"]
-    ordering = ["username"]
-
-    fieldsets = (
-        (None, {"fields": ("username", "password")}),
-        ("Personal Information", {"fields": ("first_name", "last_name", "email")}),
-        ("Permissions", {"fields": ("is_active", "is_staff", "user_permissions")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
-    )
-
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("username", "email", "password1", "password2"),
-            },
-        ),
-    )
 
 
 @admin.register(BusinessInfo)
@@ -188,3 +154,48 @@ class PortfolioItemAdmin(admin.ModelAdmin):
         return "No image"
 
     image_preview.short_description = "Image Preview"
+
+
+@admin.register(FamilyMember)
+class FamilyMemberAdmin(BaseUserAdmin):
+    """Admin interface for FamilyMember (separate from Django User)"""
+
+    list_display = [
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_staff",
+        "date_joined",
+    ]
+    list_filter = ["is_active", "is_staff", "date_joined"]
+    search_fields = ["username", "email", "first_name", "last_name"]
+    ordering = ["username"]
+
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Personal Information", {"fields": ("first_name", "last_name", "email")}),
+        ("Permissions", {"fields": ("is_active", "is_staff", "user_permissions")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
+    )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("username", "email", "password1", "password2"),
+            },
+        ),
+    )
+
+
+@admin.register(FamilyMemberToken)
+class FamilyMemberTokenAdmin(admin.ModelAdmin):
+    list_display = ["key", "user", "created"]
+    search_fields = ["key", "user__username"]
+    readonly_fields = ["key", "created"]
+
+    def has_add_permission(self, request):
+        return False  # Tokens are created automatically
