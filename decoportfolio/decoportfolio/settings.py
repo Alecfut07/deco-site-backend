@@ -73,6 +73,18 @@ CORS_ALLOW_CREDENTIALS = True
 # Keep this False for security, use CORS_ALLOWED_ORIGINS above
 CORS_ALLOW_ALL_ORIGINS = False
 
+CORS_ALLOWED_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
