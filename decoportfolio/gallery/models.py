@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill, ResizeToFit, ResizeToCover
-from .models import FamilyMember
 from category.models import Category
 
 
