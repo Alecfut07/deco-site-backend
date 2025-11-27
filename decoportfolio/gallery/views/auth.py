@@ -1,35 +1,41 @@
 from django.contrib.auth import authenticate
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
+from rest_framework.authentication import BaseAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework import status, permissions, exceptions
-from gallery.models import FamilyMember
+from gallery.models import FamilyMember, FamilyMemberToken
 from gallery.serializers import FamilyLoginSerializer
 
 
-class FamilyMemberTokenAuthentication(TokenAuthentication):
+class FamilyMemberTokenAuthentication(BaseAuthentication):
     """
     Custom token authentication that only works with FamilyMember users.
     Django Admin users won't be authenticated by this.
     """
 
-    def authenticate_credentials(self, key):
-        model = self.get_model()
+    keyword = "Token"
+
+    def authenticate(self, request):
+        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+
+        if not auth_header.startswith(self.keyword + " "):
+            return None
+
+        token_key = auth_header[len(self.keyword + " ") :].strip()
+
+        if not token_key:
+            return None
+
         try:
-            token = model.objects.select_related("user").get(key=key)
-        except model.DoesNotExist:
+            token = FamilyMemberToken.objects.select_related("user").get(key=token_key)
+        except FamilyMemberToken.DoesNotExist:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
         if not token.user.is_active:
             raise exceptions.AuthenticationFailed("User inactive or deleted.")
-
-        # Only allow FamilyMember users
-        if not isinstance(token.user, FamilyMember):
-            raise exceptions.AuthenticationFailed("Invalid user type.")
 
         return (token.user, token)
 
@@ -67,7 +73,7 @@ class FamilyLoginView(GenericAPIView):
             )
 
         # Get or create token for the user (Token Authentication)
-        token, created = Token.objects.get_or_create(user=user)
+        token, created = FamilyMemberToken.objects.get_or_create(user=user)
 
         return Response(
             {
