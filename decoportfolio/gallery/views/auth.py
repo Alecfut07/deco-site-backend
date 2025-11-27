@@ -21,11 +21,16 @@ class FamilyMemberTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
+        # Debug logging
+        print(f"DEBUG: Authorization header: {auth_header}")
+        print(f"DEBUG: All headers: {[k for k in request.META.keys() if 'HTTP' in k]}")
+
         # Also check for lowercase 'authorization' header (some clients send it lowercase)
         if not auth_header:
             auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
         if not auth_header:
+            print("DEBUG: No Authorization header found")
             return None
 
         # Handle both "Token <key>" and "Bearer <key>" formats
