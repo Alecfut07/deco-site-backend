@@ -35,9 +35,16 @@ class Command(BaseCommand):
 
         MAX_TRIES = 3
         count = 0
-        p1 = p2 = 1
+        p1 = ""
+        p2 = ""
 
-        while p1 != p2 and count < MAX_TRIES:
+        while p1 != p2 or len(p1) < 8:
+            if count >= MAX_TRIES:
+                raise CommandError(
+                    "Aborting password change for user '%s' after %s attempts"
+                    % (username, count)
+                )
+
             p1 = getpass.getpass()
             if len(p1) < 8:
                 self.stdout.write(
@@ -46,7 +53,9 @@ class Command(BaseCommand):
                     )
                 )
                 count += 1
+                p2 = ""  # Reset p2 to force mismatch
                 continue
+
             p2 = getpass.getpass("Password (again): ")
             if p1 != p2:
                 self.stdout.write(
@@ -56,13 +65,11 @@ class Command(BaseCommand):
             else:
                 break
 
-        if count == MAX_TRIES:
-            raise CommandError(
-                "Aborting password change for user '%s' after %s attempts"
-                % (username, count)
-            )
-
         user.set_password(p1)
         user.save(using=database)
 
-        return "Password changed successfully for FamilyMember user '%s'" % username
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Password changed successfully for FamilyMember user '%s'" % username
+            )
+        )
