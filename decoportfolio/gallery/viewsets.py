@@ -294,7 +294,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for services"""
+    """ViewSet for services - Public read-only access"""
 
     queryset = Service.objects.select_related("category")
     serializer_class = ServiceSerializer
@@ -303,7 +303,7 @@ class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BusinessInfoViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for business information"""
+    """ViewSet for business information - Public read-only access"""
 
     queryset = BusinessInfo.objects.filter(is_active=True)
     serializer_class = BusinessInfoSerializer

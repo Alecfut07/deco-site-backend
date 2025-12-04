@@ -70,6 +70,9 @@ CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Trust the frontend origin for CSRF
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+
 # Keep this False for security, use CORS_ALLOWED_ORIGINS above
 CORS_ALLOW_ALL_ORIGINS = False
 

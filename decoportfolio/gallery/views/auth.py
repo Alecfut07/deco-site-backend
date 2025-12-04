@@ -1,4 +1,6 @@
 from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -58,8 +60,12 @@ class FamilyMemberTokenAuthentication(BaseAuthentication):
         return (token.user, token)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class FamilyLoginView(GenericAPIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = (
+        []
+    )  # Disable all authentication (including SessionAuth which triggers CSRF)
     serializer_class = FamilyLoginSerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
     renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
