@@ -224,7 +224,10 @@ class PortfolioItem(models.Model):
 
     # Main image (for admin upload and primary display)
     image = models.ImageField(
-        upload_to="portfolio/main/", help_text="Main project image"
+        upload_to="portfolio/main/",
+        help_text="Main project image",
+        blank=True,
+        null=True,
     )
 
     # Thumbnails (auto-generated from main image)
