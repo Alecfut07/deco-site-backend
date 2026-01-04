@@ -107,6 +107,47 @@ class BusinessInfoAdminViewSet(ModelViewSet):
     authentication_classes = [FamilyMemberTokenAuthentication]
     permission_classes = [IsFamilyMember]
 
+    def get_object(self):
+        """
+        Since BusinessInfo is a singleton, return the first (and only) instance.
+        If none exists, create one.
+        """
+        obj = BusinessInfo.objects.first()
+        if obj is None:
+            # Create a default instance if none exists.
+            obj = BusinessInfo.objects.create(
+                company_name="Ortega Reyes Remodeling and Restoration",
+                phone="",
+            )
+        return obj
+
+    def list(self, request, *args, **kwargs):
+        """
+        Return the single BusinessInfo instance as a list with one item.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response([serializer.data])
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Return the single BusinessInfo instance.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Handle PUT request to update BusinessInfo.
+        Works with or without ID in URL.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
