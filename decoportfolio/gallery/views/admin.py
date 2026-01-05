@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -155,6 +156,22 @@ class BusinessInfoAdminViewSet(ModelViewSet):
         """
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["patch", "put"], url_path="", url_name="update")
+    def update_singleton(self, request):
+        """
+        Custom action to handle PATCH/PUT requests to /api/admin/business-info/
+        without requiring and ID in the URL.
+        """
+        instance = self.get_object()
+
+        # Determine if it's a partial update (PATCH) or full update (PUT).
+        partial = request.method == "PATCH"
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)

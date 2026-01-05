@@ -39,13 +39,25 @@ router.register(
 )
 router.register(r"admin/categories", CategoryAdminViewSet, basename="admin-category")
 router.register(r"admin/services", ServiceAdminViewSet, basename="admin-service")
-router.register(
-    r"admin/business-info", BusinessInfoAdminViewSet, basename="admin-businessinfo"
-)
+# router.register(
+#     r"admin/business-info", BusinessInfoAdminViewSet, basename="admin-businessinfo"
+# )
 
 app_name = "gallery"
 
 urlpatterns = [
+    # Custom routes for BusinessInfo singleton (must come BEFORE router to take precedence)
+    path(
+        "api/admin/business-info/",
+        BusinessInfoAdminViewSet.as_view(
+            {
+                "get": "list",
+                "patch": "update_singleton",
+                "put": "update_singleton",
+            }
+        ),
+        name="admin-businessinfo-singleton",
+    ),
     # Include the router URLs
     path("api/", include(router.urls)),
     path("api/auth/login/", FamilyLoginView.as_view(), name="family-login"),
