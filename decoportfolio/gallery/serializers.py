@@ -40,10 +40,26 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ServiceSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source="category",
+        write_only=True,
+        required=True,
+    )
 
     class Meta:
         model = Service
-        fields = ["id", "name", "category", "price_range", "is_active", "display_order"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "category",
+            "category_id",
+            "price_range",
+            "is_active",
+            "display_order",
+        ]
+        read_only_fields = ["id", "category"]
 
 
 class PortfolioImageSerializer(serializers.ModelSerializer):
