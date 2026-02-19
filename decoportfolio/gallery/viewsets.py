@@ -1,0 +1,329 @@
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import models
+from django.core.cache import cache
+from django.core.cache.utils import make_template_fragment_key
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import json
+from .models import PortfolioItem, Category, Service, BusinessInfo
+from .serializers import (
+    PortfolioItemSerializer,
+    CategorySerializer,
+    ServiceSerializer,
+    BusinessInfoSerializer,
+)
+
+
+def paginate_queryset(queryset, page, page_size, request):
+    """Helper function to paginate queryset and return paginated data"""
+    min_page_size = 5
+    max_page_size = 200
+    default_page = 1
+    default_page_size = 20
+
+    try:
+        page_size = int(page_size) if page_size else default_page_size
+        page_size = max(min_page_size, min(page_size, max_page_size))
+    except (ValueError, TypeError):
+        page_size = default_page_size
+
+    paginator = Paginator(queryset, page_size)
+
+    try:
+        page_number = int(page) if page else default_page
+        page_obj = paginator.page(page_number)
+    except (ValueError, TypeError, EmptyPage):
+        page_obj = paginator.page(default_page)
+
+    items = page_obj.object_list
+
+    pagination_data = {
+        "current_page": page_obj.number,
+        "total_pages": paginator.num_pages,
+        "total_items": paginator.count,
+        "page_size": page_size,
+        "has_next": page_obj.has_next(),
+        "has_previous": page_obj.has_previous(),
+        "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+        "previous_page": (
+            page_obj.previous_page_number() if page_obj.has_previous() else None
+        ),
+    }
+
+    return items, pagination_data
+
+
+class PortfolioItemViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for portfolio items with search, filter, and pagination capabilities
+
+    Provides:
+    - List all portfolio items
+    - Retrieve individual portfolio items
+    - Search by text
+    - Filter by category and service
+    - Combined search and filtering
+    - Pagination support
+    """
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    queryset = PortfolioItem.objects.select_related(
+        "category", "service"
+    ).prefetch_related("pictures", "videos")
+    serializer_class = PortfolioItemSerializer
+    default_page = 1
+    default_page_size = 20
+
+    def list(self, request, *args, **kwargs):
+        # Check cache first
+        cache_key = f"portfolio_list_{request.GET.urlencode()}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            print(f"Serving from cache: {cache_key}")
+            return Response(cached_data)
+
+        # Generate response if not in cache
+        print(f"Generating new response for: {cache_key}")
+        queryset = self.get_queryset()
+
+        # Apply filters
+        category = request.GET.get("category")
+        if category:
+            queryset = queryset.filter(category__name__iexact=category)
+
+        # Pagination
+        page = int(request.GET.get("page", self.default_page))
+        page_size = min(int(request.GET.get("page_size", 12)), 100)
+
+        items, pagination_data = paginate_queryset(
+            self.queryset, page, page_size, request
+        )
+        serializer = self.get_serializer(items, many=True)
+
+        # Prepare response data
+        response_data = {
+            "portfolio_items": serializer.data,
+            "pagination": pagination_data,
+        }
+
+        # Cache the response for 5 minutes
+        cache.set(cache_key, response_data, 300)
+
+        return Response(response_data)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Retrieve a portfolio item by ID"""
+        # Check cache first
+        cache_key = f"portfolio_item_{kwargs['pk']}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            print(f"Serving from cache: {cache_key}")
+            return Response(cached_data)
+
+        # Generate response if not in cache
+        print(f"Generating new response for: {cache_key}")
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        # Cache for 10 minutes (individual items change less frequently)
+        cache.set(cache_key, serializer.data, 600)
+
+        # try:
+        #     item = self.queryset.get(id=pk)
+        #     serializer = self.get_serializer(item)
+        #     return Response(serializer.data)
+        # except PortfolioItem.DoesNotExist:
+        #     return Response({'error': 'Portfolio item not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def search(self, request):
+        """ "Search portfolio items by text"""
+        query = request.GET.get("q", "").strip()
+        page = request.GET.get("page", self.default_page)
+        page_size = request.GET.get("page_size", self.default_page_size)
+
+        if not query:
+            return Response(
+                {"error": "Seach query is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Search in title and description
+        search_results = self.queryset.filter(
+            models.Q(title__icontains=query) | models.Q(description__icontains=query)
+        )
+
+        items, pagination_data = paginate_queryset(
+            search_results, page, page_size, request
+        )
+        serializer = self.get_serializer(items, many=True)
+
+        return Response(
+            {
+                "search_query": query,
+                "portfolio_items": serializer.data,
+                "pagination": pagination_data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def filter(self, request):
+        """Filter portfolio items by category and service"""
+        category = request.GET.get("category", "").strip()
+        service = request.GET.get("service", "").strip()
+        page = request.GET.get("page", self.default_page)
+        page_size = request.GET.get("page_size", self.default_page_size)
+
+        # Start with all items
+        filtered_results = self.queryset.all()
+
+        # Apply filters
+        if category:
+            filtered_results = filtered_results.filter(category__name__iexact=category)
+
+        if service:
+            filtered_results = filtered_results.filter(service__name__iexact=service)
+
+        items, pagination_data = paginate_queryset(
+            filtered_results, page, page_size, request
+        )
+        serializer = self.get_serializer(items, many=True)
+
+        return Response(
+            {
+                "filters_applied": {
+                    "category": category if category else None,
+                    "service": service if service else None,
+                },
+                "portfolio_items": serializer.data,
+                "pagination": pagination_data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def combined(self, request):
+        """Combined search and filtering"""
+        query = request.GET.get("q", "").strip()
+        category = request.GET.get("category", "").strip()
+        service = request.GET.get("service", "").strip()
+        page = request.GET.get("page", self.default_page)
+        page_size = request.GET.get("page_size", self.default_page_size)
+
+        # Start with all items
+        combined_results = self.queryset.all()
+
+        # Apply text search if query provided
+        if query:
+            combined_results = combined_results.filter(
+                models.Q(title__icontains=query)
+                | models.Q(description__icontains=query)
+            )
+
+        # Apply filters
+        if category:
+            combined_results = combined_results.filter(category__name__iexact=category)
+
+        if service:
+            combined_results = combined_results.filter(service__name__iexact=service)
+
+        items, pagination_data = paginate_queryset(
+            combined_results, page, page_size, request
+        )
+        serializer = self.get_serializer(items, many=True)
+
+        return Response(
+            {
+                "search_query": query if query else None,
+                "filters_applied": {
+                    "category": category if category else None,
+                    "service": service if service else None,
+                },
+                "portfolio_items": serializer.data,
+                "pagination": pagination_data,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def by_category(self, request):
+        """Get portfolio items by category"""
+        category = request.GET.get("category", "").strip()
+        page = request.GET.get("page", self.default_page)
+        page_size = request.GET.get("page_size", self.default_page_size)
+
+        if not category:
+            return Response(
+                {"error": "Category parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            category_obj = Category.objects.get(name__iexact=category)
+            category_results = self.queryset.filter(category=category_obj)
+
+            items, pagination_data = paginate_queryset(
+                category_results, page, page_size, request
+            )
+            serializer = self.get_serializer(items, many=True)
+
+            return Response(
+                {
+                    "category": category,
+                    "portfolio_items": serializer.data,
+                    "pagination": pagination_data,
+                }
+            )
+        except Category.DoesNotExist:
+            return Response(
+                {"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for categories - Public read-only access"""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for services - Public read-only access"""
+
+    queryset = Service.objects.select_related("category")
+    serializer_class = ServiceSerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+
+class BusinessInfoViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for business information - Public read-only access"""
+
+    queryset = BusinessInfo.objects.filter(is_active=True)
+    serializer_class = BusinessInfoSerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def list(self, request):
+        """Get active business information"""
+        try:
+            business_info = self.queryset.first()
+            if not business_info:
+                return Response(
+                    {"error": "Business information not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            serializer = self.get_serializer(business_info)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": "Failed to retrieve business information"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
